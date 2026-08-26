@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>City Snapshot</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <h1>City Snapshot</h1>
+    <p class="subtitle">Live weather + currency, merged by a Ballerina backend.</p>
+
+    <form id="snapshot-form">
+      <input id="city" type="text" placeholder="e.g. Colombo" required />
+      <select id="currency">
+        <option value="USD">USD</option>
+        <option value="LKR">LKR</option>
+        <option value="GBP">GBP</option>
+        <option value="INR">INR</option>
+        <option value="EUR">EUR</option>
+        <option value="AUD">AUD</option>
+        <option value="JPY">JPY</option>
+      </select>
+      <button type="submit">Get snapshot</button>
+    </form>
+
+    <div id="result"></div>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

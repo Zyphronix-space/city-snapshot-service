@@ -1,0 +1,4 @@
+[package]
+org = "stephan"
+name = "city_snapshot_service"
+version = "0.1.0"
