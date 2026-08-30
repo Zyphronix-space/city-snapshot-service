@@ -2,30 +2,176 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
   <title>City Snapshot</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <main>
-    <h1>City Snapshot</h1>
-    <p class="subtitle">Live weather + currency, merged by a Ballerina backend.</p>
+<body data-theme="light" data-weather="clear">
 
-    <form id="snapshot-form">
-      <input id="city" type="text" placeholder="e.g. Colombo" required />
-      <select id="currency">
-        <option value="USD">USD</option>
-        <option value="LKR">LKR</option>
-        <option value="GBP">GBP</option>
-        <option value="INR">INR</option>
-        <option value="EUR">EUR</option>
-        <option value="AUD">AUD</option>
-        <option value="JPY">JPY</option>
-      </select>
-      <button type="submit">Get snapshot</button>
-    </form>
+  <!-- Atmospheric background layers -->
+  <div class="atmosphere" id="atmosphere" aria-hidden="true">
+    <div class="fx-glow"></div>
+    <div class="fx-clouds">
+      <span class="cloud cloud-a"></span>
+      <span class="cloud cloud-b"></span>
+    </div>
+    <div class="fx-fog"></div>
+    <div class="fx-rain"></div>
+    <div class="fx-snow"></div>
+    <div class="fx-lightning"></div>
+  </div>
 
-    <div id="result"></div>
-  </main>
+  <div class="app-shell">
+
+    <!-- Top bar: theme toggle only, kept minimal -->
+    <header class="topbar">
+      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Change theme">
+        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></svg>
+      </button>
+    </header>
+
+    <!-- Main weather scene -->
+    <main class="weather-scene">
+      <div class="location" id="location-block">
+        <div class="location-row">
+          <svg class="location-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/>
+            <circle cx="12" cy="10" r="2.5"/>
+          </svg>
+          <h1 id="city-name">&nbsp;</h1>
+        </div>
+        <p id="country-name">&nbsp;</p>
+      </div>
+
+      <div class="weather-visual" id="weather-icon" aria-hidden="true"></div>
+
+      <div class="temperature" id="temperature">&nbsp;</div>
+      <p class="condition" id="condition">&nbsp;</p>
+      <p class="meta-line" id="meta-line">&nbsp;</p>
+    </main>
+
+    <!-- Weather details panel -->
+    <section class="details-panel" id="details-panel" hidden>
+      <div class="detail">
+        <span class="detail-label">Wind</span>
+        <span class="detail-value" id="detail-wind">—</span>
+      </div>
+      <div class="detail">
+        <span class="detail-label">Latitude</span>
+        <span class="detail-value" id="detail-lat">—</span>
+      </div>
+      <div class="detail">
+        <span class="detail-label">Longitude</span>
+        <span class="detail-value" id="detail-lon">—</span>
+      </div>
+    </section>
+
+    <!-- Currency card -->
+    <section class="currency-card" id="currency-card" hidden>
+      <h2>Currency</h2>
+      <div class="currency-convert">
+        <span class="currency-base" id="currency-base">—</span>
+        <svg class="currency-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M5 12l7 7 7-7"/>
+        </svg>
+        <span class="currency-target" id="currency-target">—</span>
+      </div>
+      <p class="currency-sub" id="currency-sub">Live exchange rate</p>
+    </section>
+
+    <!-- Loading state -->
+    <div class="loading-state" id="loading-state" hidden role="status" aria-live="polite">
+      <svg class="loading-icon" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 17.5a4.5 4.5 0 0 1-.7-8.94A5.5 5.5 0 0 1 17 8.05 4 4 0 0 1 16.5 17.5H7Z"/>
+      </svg>
+      <p>Loading weather…</p>
+    </div>
+
+    <!-- Error state -->
+    <div class="error-state" id="error-state" hidden role="alert">
+      <svg class="error-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 8v5M12 16h.01"/>
+      </svg>
+      <h2 id="error-title">Something went wrong</h2>
+      <p id="error-message"></p>
+      <button type="button" class="retry-btn" id="error-retry">Try again</button>
+    </div>
+
+    <!-- Floating search control -->
+    <button type="button" class="search-fab" id="search-fab" aria-expanded="false" aria-controls="search-panel">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="m21 21-4.3-4.3"/>
+      </svg>
+      <span>Search city</span>
+    </button>
+
+    <div class="search-backdrop" id="search-backdrop" hidden></div>
+
+    <div class="search-panel" id="search-panel" hidden>
+      <div class="search-panel-head">
+        <span class="search-panel-title">Find a city</span>
+        <button type="button" class="icon-btn" id="search-close" aria-label="Close search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="search-form" autocomplete="off">
+        <input id="city-input" type="text" placeholder="Search city" aria-label="City name" required />
+        <div class="search-row">
+          <div class="currency-picker" id="currency-picker">
+            <button type="button" class="currency-picker-btn" id="currency-picker-btn" aria-haspopup="listbox" aria-expanded="false">
+              <span id="currency-picker-value">USD</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            </button>
+            <ul class="currency-picker-list" id="currency-picker-list" role="listbox" aria-label="Currency" hidden>
+              <li role="option" data-value="USD">USD</li>
+              <li role="option" data-value="LKR">LKR</li>
+              <li role="option" data-value="GBP">GBP</li>
+              <li role="option" data-value="INR">INR</li>
+              <li role="option" data-value="EUR">EUR</li>
+              <li role="option" data-value="AUD">AUD</li>
+              <li role="option" data-value="JPY">JPY</li>
+              <li role="option" data-value="SGD">SGD</li>
+              <li role="option" data-value="AED">AED</li>
+            </ul>
+          </div>
+          <button type="submit" class="search-submit" id="search-submit">Search</button>
+        </div>
+      </form>
+
+      <button type="button" class="locate-btn" id="locate-btn">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+        </svg>
+        <span id="locate-btn-label">Use my location</span>
+      </button>
+      <p class="locate-status" id="locate-status" hidden></p>
+
+      <div class="suggested-cities" id="suggested-cities">
+        <button type="button" data-city="Colombo">Colombo</button>
+        <button type="button" data-city="London">London</button>
+        <button type="button" data-city="Tokyo">Tokyo</button>
+        <button type="button" data-city="New York">New York</button>
+        <button type="button" data-city="Singapore">Singapore</button>
+        <button type="button" data-city="Dubai">Dubai</button>
+      </div>
+
+      <div class="api-status" id="api-status">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">Checking status…</span>
+      </div>
+    </div>
+
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
