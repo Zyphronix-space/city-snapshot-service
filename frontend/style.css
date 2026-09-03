@@ -161,24 +161,10 @@ body[data-weather="fog"] .fx-fog { opacity: 1; }
 }
 @keyframes fog-drift { from { background-position-x: 0; } to { background-position-x: 400px; } }
 
-/* rain */
-.fx-rain {
-  background-image: repeating-linear-gradient(
-    12deg,
-    rgba(255,255,255,0.35) 0px,
-    rgba(255,255,255,0.35) 1px,
-    transparent 1px,
-    transparent 22px
-  );
-  background-size: 100% 140%;
-}
+/* rain — canvas-drawn falling streaks + soft droplet glints, see script.js */
+.fx-rain { display: block; width: 100%; height: 100%; }
 body[data-weather="rain"] .fx-rain,
-body[data-weather="thunderstorm"] .fx-rain { opacity: 0.5; }
-@media (prefers-reduced-motion: no-preference) {
-  body[data-weather="rain"] .fx-rain,
-  body[data-weather="thunderstorm"] .fx-rain { animation: rain-fall 0.55s linear infinite; }
-}
-@keyframes rain-fall { from { background-position: 0 0; } to { background-position: -30px 60px; } }
+body[data-weather="thunderstorm"] .fx-rain { opacity: 0.6; }
 
 /* snow */
 .fx-snow {

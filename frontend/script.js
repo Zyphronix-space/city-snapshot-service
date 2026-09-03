@@ -169,7 +169,135 @@ function updateWeatherTheme(description) {
   const category = getWeatherCategory(description);
   els.body.setAttribute("data-weather", category);
   els.weatherIcon.innerHTML = WEATHER_ICONS[category] || WEATHER_ICONS.unknown;
+  RainFX.setActive(category === "rain" || category === "thunderstorm");
 }
+
+/* ----------------------------------------------------------------
+   Rain background effect (canvas) — falling streaks with a fading
+   trail, plus a handful of soft stationary droplet glints. Replaced
+   an earlier CSS repeating-gradient version that just looked like a
+   handful of long straight diagonal lines across the screen (read as
+   a rendering glitch, not rain) — actual short/varied falling streaks
+   need per-particle state, which CSS backgrounds can't give us.
+   ------------------------------------------------------------------- */
+const RainFX = (() => {
+  const canvas = document.getElementById("rain-canvas");
+  const ctx = canvas.getContext("2d");
+  let streaks = [];
+  let beads = [];
+  let running = false;
+  let rafId = null;
+  let clock = 0;
+
+  function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function makeStreak() {
+    return {
+      x: Math.random() * canvas.clientWidth,
+      y: Math.random() * -canvas.clientHeight,
+      len: 16 + Math.random() * 22,
+      speed: 2.6 + Math.random() * 3.6,
+      drift: 0.5 + Math.random() * 0.5,
+      width: 1 + Math.random() * 1.3,
+      alpha: 0.18 + Math.random() * 0.32,
+    };
+  }
+
+  function makeBead() {
+    return {
+      x: Math.random() * canvas.clientWidth,
+      y: Math.random() * canvas.clientHeight,
+      r: 2 + Math.random() * 4,
+      phase: Math.random() * Math.PI * 2,
+    };
+  }
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = canvas.clientWidth * dpr;
+    canvas.height = canvas.clientHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function seed() {
+    const area = canvas.clientWidth * canvas.clientHeight;
+    streaks = Array.from({ length: Math.min(Math.round(area / 8500), 160) }, makeStreak);
+    beads = Array.from({ length: Math.min(Math.round(area / 22000), 55) }, makeBead);
+  }
+
+  function frame() {
+    clock += 0.016;
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+
+    for (const b of beads) {
+      const a = 0.12 + 0.1 * (0.5 + 0.5 * Math.sin(clock * 0.6 + b.phase));
+      const g = ctx.createRadialGradient(b.x - b.r * 0.3, b.y - b.r * 0.3, 0, b.x, b.y, b.r);
+      g.addColorStop(0, `rgba(255,255,255,${a + 0.25})`);
+      g.addColorStop(0.6, `rgba(255,255,255,${a})`);
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    for (const d of streaks) {
+      const x2 = d.x + d.drift * d.len * 0.35;
+      const y2 = d.y + d.len;
+      const g = ctx.createLinearGradient(d.x, d.y, x2, y2);
+      g.addColorStop(0, "rgba(255,255,255,0)");
+      g.addColorStop(0.75, `rgba(255,255,255,${d.alpha})`);
+      g.addColorStop(1, `rgba(255,255,255,${d.alpha * 1.5})`);
+      ctx.strokeStyle = g;
+      ctx.lineWidth = d.width;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      d.y += d.speed;
+      d.x += d.drift * 0.35;
+      if (d.y > canvas.clientHeight) {
+        d.y = -d.len - Math.random() * 60;
+        d.x = Math.random() * canvas.clientWidth;
+      }
+    }
+
+    if (running) rafId = requestAnimationFrame(frame);
+  }
+
+  function start() {
+    if (running || prefersReducedMotion()) return;
+    running = true;
+    resize();
+    seed();
+    frame();
+  }
+
+  function stop() {
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+  }
+
+  window.addEventListener("resize", () => {
+    if (running) {
+      resize();
+      seed();
+    }
+  });
+
+  return {
+    setActive(active) {
+      if (active) start();
+      else stop();
+    },
+  };
+})();
 
 /* ----------------------------------------------------------------
    Theme (light / dark / system)
