@@ -129,9 +129,9 @@ const WEATHER_ICONS = {
   </svg>`,
   rain: `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M27 54h44a16 16 0 0 0 1.2-32A22 22 0 0 0 30 30 14 14 0 0 0 27 54Z"/>
-    <line x1="34" y1="66" x2="30" y2="80"/>
-    <line x1="50" y1="66" x2="46" y2="80"/>
-    <line x1="66" y1="66" x2="62" y2="80"/>
+    <path d="M34 65 Q30 74 30 79 A3 3 0 1 0 36 79 Q36 74 34 65Z" fill="currentColor" stroke="none"/>
+    <path d="M50 68 Q46 77 46 82 A3 3 0 1 0 52 82 Q52 77 50 68Z" fill="currentColor" stroke="none"/>
+    <path d="M66 65 Q62 74 62 79 A3 3 0 1 0 68 79 Q68 74 66 65Z" fill="currentColor" stroke="none"/>
   </svg>`,
   thunderstorm: `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M27 50h44a16 16 0 0 0 1.2-32A22 22 0 0 0 30 26 14 14 0 0 0 27 50Z"/>
