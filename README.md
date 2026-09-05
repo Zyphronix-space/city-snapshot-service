@@ -5,6 +5,17 @@ WSO2 Engineering Intern application's "real-world project implementation"
 contribution (2 points). Give it a city name, it returns live weather and a
 currency exchange rate in one response.
 
+**Live demo:** https://delightful-mud-0758db600.7.azurestaticapps.net
+
+## Screenshots
+
+![Colombo snapshot](docs/screenshots/snapshot-colombo.png)
+
+Searching a different city updates weather, coordinates, and the live FX
+rate together:
+
+![Searching Tokyo](docs/screenshots/search-tokyo.png)
+
 ## Why this counts as an "integration" project
 
 Ballerina's whole pitch is that it's a language *built for* talking to
