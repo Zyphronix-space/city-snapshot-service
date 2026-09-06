@@ -4,18 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
-  <title>City Snapshot</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="description" content="CityScope — a fast, beautiful city weather and information app." />
+  <title>CityScope</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/layout.css" />
 </head>
-<body data-theme="light" data-weather="clear">
+<body data-theme="system" data-weather="clear">
 
-  <!-- Atmospheric background layers -->
+  <!-- Weather-responsive atmospheric background -->
   <div class="atmosphere" id="atmosphere" aria-hidden="true">
     <div class="fx-glow"></div>
-    <div class="fx-clouds">
-      <span class="cloud cloud-a"></span>
-      <span class="cloud cloud-b"></span>
-    </div>
+    <div class="fx-clouds"><span class="cloud cloud-a"></span><span class="cloud cloud-b"></span></div>
     <div class="fx-fog"></div>
     <canvas class="fx-rain" id="rain-canvas"></canvas>
     <div class="fx-snow"></div>
@@ -24,154 +26,293 @@
 
   <div class="app-shell">
 
-    <!-- Top bar: theme toggle only, kept minimal -->
-    <header class="topbar">
-      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Change theme">
-        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></svg>
-      </button>
+    <!-- ============================== NAV ============================== -->
+    <header class="navbar">
+      <div class="nav-inner">
+        <button type="button" class="brand" data-view-link="home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a5 5 0 1 1 1.5-9.8A6 6 0 0 1 22 12a4.5 4.5 0 0 1-4.5 7Z"/></svg>
+          </span>
+          CityScope
+        </button>
+
+        <nav class="nav-links" aria-label="Primary">
+          <button type="button" class="nav-link is-active" data-view-link="home">Home</button>
+          <button type="button" class="nav-link" data-view-link="map">Map</button>
+          <button type="button" class="nav-link" data-view-link="compare">Compare</button>
+          <button type="button" class="nav-link" data-view-link="about">About</button>
+        </nav>
+
+        <div class="nav-actions">
+          <button type="button" class="pill-btn" id="unit-toggle" aria-label="Switch temperature unit">°C</button>
+          <button type="button" class="icon-btn" id="theme-toggle" aria-label="Change theme">
+            <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></svg>
+          </button>
+          <button type="button" class="icon-btn nav-burger" id="nav-burger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-mobile">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <nav class="nav-mobile" id="nav-mobile" hidden aria-label="Primary mobile">
+        <button type="button" class="nav-link is-active" data-view-link="home">Home</button>
+        <button type="button" class="nav-link" data-view-link="map">Map</button>
+        <button type="button" class="nav-link" data-view-link="compare">Compare</button>
+        <button type="button" class="nav-link" data-view-link="about">About</button>
+      </nav>
     </header>
 
-    <!-- Main weather scene -->
-    <main class="weather-scene">
-      <div class="location" id="location-block">
-        <div class="location-row">
-          <svg class="location-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/>
-            <circle cx="12" cy="10" r="2.5"/>
-          </svg>
-          <h1 id="city-name">&nbsp;</h1>
+    <main class="views">
+
+      <!-- ============================== HOME ============================== -->
+      <section class="view" id="view-home" data-view="home">
+
+        <!-- Hero search — shown until a city is loaded -->
+        <div class="search-hero" id="search-hero">
+          <h1>Explore any city</h1>
+          <p class="lede">Search for a city to see live weather, forecasts, air quality and currency — no account needed.</p>
+
+          <form class="search-box glass" id="hero-search-form" role="search" autocomplete="off">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="hero-search-input" type="text" placeholder="Search city…" aria-label="Search city" aria-autocomplete="list" aria-expanded="false" aria-controls="hero-suggestions" role="combobox" />
+            <button type="submit" class="search-go" aria-label="Search">Search</button>
+          </form>
+          <ul class="search-suggestions glass" id="hero-suggestions" role="listbox" hidden></ul>
+
+          <div class="chip-group" id="popular-cities">
+            <span class="chip-group-label">Popular:</span>
+            <button type="button" class="chip" data-city="Colombo">Colombo</button>
+            <button type="button" class="chip" data-city="Tokyo">Tokyo</button>
+            <button type="button" class="chip" data-city="London">London</button>
+            <button type="button" class="chip" data-city="Dubai">Dubai</button>
+            <button type="button" class="chip" data-city="Singapore">Singapore</button>
+            <button type="button" class="chip" data-city="Sydney">Sydney</button>
+          </div>
+
+          <div class="chip-group" id="recent-searches-block" hidden>
+            <span class="chip-group-label">Recent:</span>
+            <span class="chip-row" id="recent-chip-row"></span>
+            <button type="button" class="chip-clear" id="clear-recent">Clear</button>
+          </div>
+
+          <div class="chip-group" id="favorite-cities-block" hidden>
+            <span class="chip-group-label">My cities:</span>
+            <span class="chip-row" id="favorite-chip-row"></span>
+          </div>
         </div>
-        <p id="country-name">&nbsp;</p>
-      </div>
 
-      <div class="weather-visual" id="weather-icon" aria-hidden="true"></div>
+        <!-- Loading / error states -->
+        <div class="state-block loading-state" id="home-loading" hidden role="status" aria-live="polite">
+          <div class="spinner" aria-hidden="true"></div>
+          <p>Fetching live data…</p>
+        </div>
 
-      <div class="temperature" id="temperature">&nbsp;</div>
-      <p class="condition" id="condition">&nbsp;</p>
-      <p class="meta-line" id="meta-line">&nbsp;</p>
+        <div class="state-block error-state" id="home-error" hidden role="alert">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          <h2 id="home-error-title">Something went wrong</h2>
+          <p id="home-error-message"></p>
+          <button type="button" class="btn-primary" id="home-error-retry">Try again</button>
+        </div>
+
+        <!-- Full city dashboard -->
+        <div class="dashboard" id="dashboard" hidden>
+
+          <form class="dashboard-search glass" id="dashboard-search-form" role="search" autocomplete="off">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="dashboard-search-input" type="text" placeholder="Search another city…" aria-label="Search city" aria-autocomplete="list" aria-expanded="false" aria-controls="dashboard-suggestions" role="combobox" />
+          </form>
+          <ul class="search-suggestions glass" id="dashboard-suggestions" role="listbox" hidden></ul>
+
+          <section class="hero-card glass-card" id="hero-card">
+            <div class="hero-top">
+              <div class="hero-location">
+                <div class="hero-location-row">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                  <h2 id="hero-city">—</h2>
+                  <button type="button" class="favorite-btn" id="favorite-btn" aria-pressed="false" aria-label="Pin this city">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 17.3-6.2 3.6 1.6-7L2 9.2l7.1-.6L12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7Z"/></svg>
+                  </button>
+                </div>
+                <p id="hero-country">—</p>
+              </div>
+              <div class="hero-time">
+                <p class="hero-time-value" id="hero-local-time">—</p>
+                <p class="hero-time-sub" id="hero-local-date">—</p>
+                <p class="hero-time-sub" id="hero-timezone">—</p>
+              </div>
+            </div>
+
+            <div class="hero-main">
+              <div class="weather-visual" id="hero-icon" aria-hidden="true"></div>
+              <div class="hero-temp-block">
+                <p class="hero-temp" id="hero-temp">—</p>
+                <p class="hero-condition" id="hero-condition">—</p>
+                <p class="hero-feels" id="hero-feels">—</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="metrics-grid" id="metrics-grid" aria-label="Current conditions"></section>
+
+          <section class="glass-card" id="hourly-section">
+            <h3 class="card-title">Hourly Forecast</h3>
+            <div class="hourly-scroll" id="hourly-scroll"></div>
+            <canvas id="hourly-chart" class="glass-chart" height="120" role="img" aria-label="Hourly temperature chart"></canvas>
+          </section>
+
+          <section class="glass-card" id="daily-section">
+            <h3 class="card-title">7-Day Forecast</h3>
+            <ul class="daily-list" id="daily-list"></ul>
+          </section>
+
+          <div class="two-col">
+            <section class="glass-card" id="air-quality-card">
+              <h3 class="card-title">Air Quality</h3>
+              <div class="aqi-readout">
+                <p class="aqi-value" id="aqi-value">—</p>
+                <p class="aqi-category" id="aqi-category">—</p>
+              </div>
+              <p class="aqi-explainer" id="aqi-explainer"></p>
+              <div class="metric-row">
+                <div class="metric-chip"><span>PM2.5</span><strong id="aqi-pm25">—</strong></div>
+                <div class="metric-chip"><span>PM10</span><strong id="aqi-pm10">—</strong></div>
+                <div class="metric-chip"><span>Ozone</span><strong id="aqi-ozone">—</strong></div>
+              </div>
+            </section>
+
+            <section class="glass-card" id="travel-card">
+              <h3 class="card-title">Travel Snapshot</h3>
+              <p class="travel-subtitle">How today's weather feels for being outdoors</p>
+              <p class="travel-badge" id="travel-badge">—</p>
+              <ul class="travel-reasons" id="travel-reasons"></ul>
+            </section>
+          </div>
+
+          <section class="glass-card" id="currency-card">
+            <h3 class="card-title">Currency</h3>
+            <div class="currency-display">
+              <span id="currency-base-line">—</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+              <span id="currency-target-line">—</span>
+            </div>
+            <p class="currency-updated" id="currency-updated"></p>
+
+            <form class="converter" id="converter-form">
+              <div class="converter-field">
+                <label for="converter-amount">Amount</label>
+                <input type="number" id="converter-amount" value="100" min="0" step="any" />
+              </div>
+              <div class="converter-field">
+                <label for="converter-from">From</label>
+                <select id="converter-from"></select>
+              </div>
+              <div class="converter-field">
+                <label for="converter-to">To</label>
+                <select id="converter-to"></select>
+              </div>
+              <button type="submit" class="btn-primary">Convert</button>
+            </form>
+            <p class="converter-result" id="converter-result" aria-live="polite"></p>
+          </section>
+
+          <section class="glass-card" id="analytics-card">
+            <h3 class="card-title">Weather Analytics</h3>
+            <div class="analytics-grid">
+              <canvas id="temp-trend-chart" class="glass-chart" height="140" role="img" aria-label="Temperature trend chart"></canvas>
+              <canvas id="rain-chart" class="glass-chart" height="140" role="img" aria-label="Rain probability chart"></canvas>
+            </div>
+            <div class="range-row" id="range-row"></div>
+          </section>
+
+        </div>
+      </section>
+
+      <!-- ============================== MAP ============================== -->
+      <section class="view" id="view-map" data-view="map" hidden>
+        <div class="view-header">
+          <h1>Map</h1>
+          <p class="lede">Find a city on the map, or search to jump straight to it.</p>
+        </div>
+        <form class="search-box glass" id="map-search-form" role="search" autocomplete="off">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="map-search-input" type="text" placeholder="Search city…" aria-label="Search city" aria-autocomplete="list" aria-expanded="false" aria-controls="map-suggestions" role="combobox" />
+          <button type="submit" class="search-go">Search</button>
+        </form>
+        <ul class="search-suggestions glass" id="map-suggestions" role="listbox" hidden></ul>
+        <div class="map-frame glass" id="map-frame">
+          <div id="map-container"></div>
+        </div>
+      </section>
+
+      <!-- ============================== COMPARE ============================== -->
+      <section class="view" id="view-compare" data-view="compare" hidden>
+        <div class="view-header">
+          <h1>Compare cities</h1>
+          <p class="lede">Add 2–4 cities to compare their current conditions side by side.</p>
+        </div>
+        <form class="search-box glass" id="compare-search-form" role="search" autocomplete="off">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="compare-search-input" type="text" placeholder="Add a city…" aria-label="Add a city" aria-autocomplete="list" aria-expanded="false" aria-controls="compare-suggestions" role="combobox" />
+          <button type="submit" class="search-go">Add</button>
+        </form>
+        <ul class="search-suggestions glass" id="compare-suggestions" role="listbox" hidden></ul>
+
+        <div class="state-block" id="compare-empty">
+          <p class="lede">No cities added yet — search above to get started.</p>
+        </div>
+
+        <div class="compare-grid" id="compare-grid" hidden></div>
+        <section class="glass-card" id="compare-chart-card" hidden>
+          <h3 class="card-title">Temperature comparison</h3>
+          <canvas id="compare-chart" class="glass-chart" height="160" role="img" aria-label="City temperature comparison chart"></canvas>
+        </section>
+      </section>
+
+      <!-- ============================== ABOUT ============================== -->
+      <section class="view" id="view-about" data-view="about" hidden>
+        <div class="view-header">
+          <h1>About CityScope</h1>
+          <p class="lede">A fast, beautiful way to check any city's weather and essentials.</p>
+        </div>
+
+        <section class="glass-card about-card">
+          <h3 class="card-title">What this is</h3>
+          <p>CityScope answers one question — <em>"What is happening in this city right now?"</em> Search any city and instantly see its current weather, hourly and 7-day forecast, air quality, local time, and currency — all in one place. No sign-up, no account, no paywall.</p>
+        </section>
+
+        <section class="glass-card about-card">
+          <h3 class="card-title">Good to know</h3>
+          <ul class="tech-list">
+            <li>Everything you see is live data — nothing is made up or estimated.</li>
+            <li>Your recent searches and pinned cities are saved only on this device.</li>
+            <li>Weather and air quality come from Open-Meteo; currency rates from exchangerate-api.com.</li>
+          </ul>
+        </section>
+
+        <section class="glass-card about-card">
+          <h3 class="card-title">Links</h3>
+          <p><a id="about-repo-link" href="https://github.com/Zyphronix-space/city-snapshot-service" target="_blank" rel="noopener">Source on GitHub</a></p>
+        </section>
+      </section>
+
     </main>
 
-    <!-- Weather details panel -->
-    <section class="details-panel" id="details-panel" hidden>
-      <div class="detail">
-        <span class="detail-label">Wind</span>
-        <span class="detail-value" id="detail-wind">—</span>
-      </div>
-      <div class="detail">
-        <span class="detail-label">Latitude</span>
-        <span class="detail-value" id="detail-lat">—</span>
-      </div>
-      <div class="detail">
-        <span class="detail-label">Longitude</span>
-        <span class="detail-value" id="detail-lon">—</span>
-      </div>
-    </section>
-
-    <!-- Currency card -->
-    <section class="currency-card" id="currency-card" hidden>
-      <h2>Currency</h2>
-      <div class="currency-convert">
-        <span class="currency-base" id="currency-base">—</span>
-        <svg class="currency-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 5v14M5 12l7 7 7-7"/>
-        </svg>
-        <span class="currency-target" id="currency-target">—</span>
-      </div>
-      <p class="currency-sub" id="currency-sub">Live exchange rate</p>
-    </section>
-
-    <!-- Loading state -->
-    <div class="loading-state" id="loading-state" hidden role="status" aria-live="polite">
-      <svg class="loading-icon" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M7 17.5a4.5 4.5 0 0 1-.7-8.94A5.5 5.5 0 0 1 17 8.05 4 4 0 0 1 16.5 17.5H7Z"/>
-      </svg>
-      <p>Loading weather…</p>
-    </div>
-
-    <!-- Error state -->
-    <div class="error-state" id="error-state" hidden role="alert">
-      <svg class="error-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="9"/>
-        <path d="M12 8v5M12 16h.01"/>
-      </svg>
-      <h2 id="error-title">Something went wrong</h2>
-      <p id="error-message"></p>
-      <button type="button" class="retry-btn" id="error-retry">Try again</button>
-    </div>
-
-    <!-- Floating search control -->
-    <button type="button" class="search-fab" id="search-fab" aria-expanded="false" aria-controls="search-panel">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="7"/>
-        <path d="m21 21-4.3-4.3"/>
-      </svg>
-      <span>Search city</span>
-    </button>
-
-    <div class="search-backdrop" id="search-backdrop" hidden></div>
-
-    <div class="search-panel" id="search-panel" hidden>
-      <div class="search-panel-head">
-        <span class="search-panel-title">Find a city</span>
-        <button type="button" class="icon-btn" id="search-close" aria-label="Close search">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 6 6 18M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-
-      <form id="search-form" autocomplete="off">
-        <input id="city-input" type="text" placeholder="Search city" aria-label="City name" required />
-        <div class="search-row">
-          <div class="currency-picker" id="currency-picker">
-            <button type="button" class="currency-picker-btn" id="currency-picker-btn" aria-haspopup="listbox" aria-expanded="false">
-              <span id="currency-picker-value">USD</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m6 9 6 6 6-6"/>
-              </svg>
-            </button>
-            <ul class="currency-picker-list" id="currency-picker-list" role="listbox" aria-label="Currency" hidden>
-              <li role="option" data-value="USD">USD</li>
-              <li role="option" data-value="LKR">LKR</li>
-              <li role="option" data-value="GBP">GBP</li>
-              <li role="option" data-value="INR">INR</li>
-              <li role="option" data-value="EUR">EUR</li>
-              <li role="option" data-value="AUD">AUD</li>
-              <li role="option" data-value="JPY">JPY</li>
-              <li role="option" data-value="SGD">SGD</li>
-              <li role="option" data-value="AED">AED</li>
-            </ul>
-          </div>
-          <button type="submit" class="search-submit" id="search-submit">Search</button>
-        </div>
-      </form>
-
-      <button type="button" class="locate-btn" id="locate-btn">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-        </svg>
-        <span id="locate-btn-label">Use my location</span>
-      </button>
-      <p class="locate-status" id="locate-status" hidden></p>
-
-      <div class="suggested-cities" id="suggested-cities">
-        <button type="button" data-city="Colombo">Colombo</button>
-        <button type="button" data-city="London">London</button>
-        <button type="button" data-city="Tokyo">Tokyo</button>
-        <button type="button" data-city="New York">New York</button>
-        <button type="button" data-city="Singapore">Singapore</button>
-        <button type="button" data-city="Dubai">Dubai</button>
-      </div>
-
-      <div class="api-status" id="api-status">
-        <span class="status-dot" id="status-dot"></span>
-        <span id="status-text">Checking status…</span>
-      </div>
-    </div>
-
+    <footer class="app-footer">
+      <p>CityScope — weather &amp; air quality by Open-Meteo, currency by exchangerate-api.com.</p>
+      <p><a href="https://github.com/Zyphronix-space/city-snapshot-service" target="_blank" rel="noopener">Source on GitHub</a></p>
+    </footer>
   </div>
 
-  <script src="script.js"></script>
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="js/weather-icons.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/home.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/compare.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,141 +1,277 @@
-# City Snapshot Service
+# CityScope
 
-A small integration API built with **Ballerina** (WSO2's own language) for the
-WSO2 Engineering Intern application's "real-world project implementation"
-contribution (2 points). Give it a city name, it returns live weather and a
-currency exchange rate in one response.
+A fast, beautiful city weather and information app. Search any city and see
+its current weather, hourly and 7-day forecast, air quality, local time, and
+currency — all in one dashboard, with no account or login required.
 
-**Live demo:** https://delightful-mud-0758db600.7.azurestaticapps.net
+Originally built as a small Ballerina "integration" project for the WSO2
+Engineering Intern application; rebuilt into a full product: the Ballerina
+backend now runs a versioned, cached, rate-limited API, and the frontend is a
+complete multi-view weather app instead of a single search box.
+
+**Live demo:** https://delightful-mud-0758db600.7.azurestaticapps.net *(will
+be redeployed after this rebuild — see [Deployment](#deployment))*
 
 ## Screenshots
 
-![Colombo snapshot](docs/screenshots/snapshot-colombo.png)
+Home dashboard — current weather, hourly/daily forecast, air quality,
+currency, and analytics for one city:
 
-Searching a different city updates weather, coordinates, and the live FX
-rate together:
+![CityScope home dashboard](docs/screenshots/home-dashboard.png)
 
-![Searching Tokyo](docs/screenshots/search-tokyo.png)
+Compare view — current conditions for 2–4 cities side by side:
 
-## Why this counts as an "integration" project
+![CityScope compare view](docs/screenshots/compare-cities.png)
 
-Ballerina's whole pitch is that it's a language *built for* talking to
-multiple services and combining the results — which is exactly what WSO2
-sells (API Manager, Integrator, etc.). This project does that literally:
+## Features
+
+- **City search** with autocomplete and disambiguation (e.g. "Colombo" is a
+  city in both Sri Lanka and Brazil — search shows both, and picking one is
+  unambiguous even though both share a name)
+- **Current weather** — temperature, feels-like, humidity, wind, pressure,
+  visibility, UV index, sunrise/sunset
+- **Hourly forecast** (next 24h) with a temperature chart
+- **7-day forecast**
+- **Air quality** (US AQI, PM2.5, PM10, ozone, plain-language category)
+- **Local time & timezone**, computed from the city's real UTC offset — never
+  guessed from longitude
+- **Currency** display and a live converter between any two currencies
+- **Interactive map** to search and jump to a city
+- **City comparison** (2–4 cities, side by side, with a chart)
+- **Weather analytics** — 7-day temperature/rain trend charts and range stats
+- **Travel snapshot** — a simple, rule-based read on today's conditions
+  (explicitly not AI — see [Technical decisions](#technical-decisions))
+- **Recent searches & pinned cities**, stored in `localStorage` only
+- **Light/dark mode** and **°C/°F**, the latter defaulting to whichever unit
+  the searched city's own country actually uses (Celsius almost everywhere,
+  Fahrenheit for the US and a handful of others) until you override it
+- **No login, no account, no paywall** — everything works immediately
+
+## Tech stack
+
+- **Backend:** Ballerina (Swan Lake) — HTTP service, concurrent upstream
+  calls, in-memory TTL caching, fixed-window rate limiting, unit tests
+- **Frontend:** vanilla HTML/CSS/JS, no framework, no build step
+- **Map:** Leaflet + OpenStreetMap tiles
+- **Data:** [Open-Meteo](https://open-meteo.com/) (geocoding, forecast, air
+  quality) and [open.er-api.com](https://www.exchangerate-api.com/) (currency)
+  — both free and keyless
+
+## Architecture
 
 ```
-GET /api/snapshot/Colombo?currency=LKR
-        │
-        ▼
-1. Geocode "Colombo" → lat/lon + country      (geocoding-api.open-meteo.com)
-        │
-        ├──▶ 2a. Fetch current weather  ──┐   (api.open-meteo.com)
-        │                                  ├─▶ 3. Merge → JSON response
-        └──▶ 2b. Fetch USD exchange rates ┘   (open.er-api.com)
+            CityScope Frontend
+                   |
+                   v
+             Ballerina API (/api/v1)
+                   |
+    +--------------+---------------+--------------+
+    v              v               v              v
+Geocoding       Weather      Air Quality      Currency
+(Open-Meteo)   (Open-Meteo)  (Open-Meteo)   (open.er-api)
 ```
 
-Steps 2a and 2b don't depend on each other, so they run **concurrently**
-using Ballerina's `start` / `wait` — that's the one Ballerina-specific idea
-worth understanding cold (see Q&A below).
+`GET /api/v1/snapshot/{city}` geocodes the city once, then fires the weather,
+air quality, and currency requests **concurrently** with Ballerina's
+`start`/`wait` — none of the three depends on another's result, so they run
+in parallel instead of one after another. Weather is essential (its failure
+fails the request); air quality and currency are each optional — if one
+upstream is down, the snapshot still returns with that field set to `null`
+rather than failing outright.
 
-No API keys needed — all three upstream APIs are free and public.
+## Caching strategy
 
-## Project layout
+A small hand-rolled in-memory TTL cache sits in front of every upstream call,
+keyed by coordinates (weather/air quality) or city name (geocoding) or
+currency code (FX rates) — never by this service's own derived response
+shape, so a cache hit still recomputes weather descriptions/AQI categories
+fresh while skipping the network round-trip.
+
+| Data       | TTL     | Why                                          |
+|------------|---------|-----------------------------------------------|
+| Geocoding  | 24h     | A city's coordinates don't move                |
+| Weather    | 5 min   | Balances freshness against upstream load       |
+| Air quality| 10 min  | Changes more slowly than weather               |
+| Currency   | 30 min  | Exchange rates update a few times a day at most|
+
+## Rate limiting
+
+A single global fixed-window limiter (60 requests/minute by default,
+configurable — see `backend/Config.toml.example`) protects the free-tier
+upstream APIs, which this whole service shares one quota with regardless of
+which caller triggered the request. It's deliberately global rather than
+per-client: per-IP limiting would need every resource function to switch to
+the manual `http:Caller`-response pattern instead of typed returns, a much
+larger change for a demo-scale service.
+
+## API
+
+Base path: `/api/v1`. All responses are JSON; errors are always
+`{ "error": { "code", "message", "requestId" } }`.
+
+| Endpoint | Description |
+|---|---|
+| `GET /health` | Service + upstream status |
+| `GET /metrics` | Request counts, cache hit rate, per-upstream error counts |
+| `GET /city/search?q=&max=` | Geocoding search — up to `max` (default 5, max 10) candidate cities |
+| `GET /snapshot/{city}?currency=` | Full dashboard payload: location, current weather, hourly, daily, air quality, currency |
+| `GET /weather/{city}` | Current + hourly + daily forecast only |
+| `GET /air-quality/{city}` | Air quality only |
+| `GET /currency/convert?amount=&from=&to=` | Currency conversion |
+
+`snapshot`, `weather`, and `air-quality` also accept optional
+`lat`, `lon`, `country`, `countryCode`, `region`, `timezone` query params —
+the frontend passes these straight from a chosen search result so a specific
+"Colombo, Brazil" pick can't silently resolve back to "Colombo, Sri Lanka"
+via a fresh by-name geocode.
+
+**Example:**
+
+```
+GET /api/v1/snapshot/Tokyo
+
+{
+  "location": { "name": "Tokyo", "country": "Japan", "countryCode": "JP", ... },
+  "current": { "temperatureCelsius": 27.4, "condition": { "icon": "partly-cloudy", ... }, ... },
+  "hourly": [ { "time": "...", "temperatureCelsius": 26.1, ... }, ... ],
+  "daily": [ { "date": "...", "tempMaxCelsius": 29.0, "tempMinCelsius": 22.0, ... }, ... ],
+  "airQuality": { "usAqi": 42, "category": "Good", "pm25": 8.2, ... },
+  "currency": { "baseCurrency": "USD", "targetCurrency": "JPY", "exchangeRate": 156.1, ... },
+  "generatedAt": "2026-09-06T04:53:11Z"
+}
+```
+
+## Project structure
 
 ```
 backend/
-  Ballerina.toml     package metadata
-  types.bal          record (struct) definitions for every JSON shape involved
-  weather.bal         WMO weather-code → human string helper
-  service.bal         the actual HTTP service (the file to read first)
+  Ballerina.toml, Dependencies.toml   package metadata
+  Config.toml.example                 optional rate-limit overrides (no secrets — nothing needs an API key)
+  types.bal                           every record type (upstream + this service's own response shapes)
+  weather.bal                         WMO weather-code -> icon/description, AQI category, forecast-shape builders
+  currency.bal                        country -> currency code mapping
+  cache.bal                           hand-rolled TTL cache
+  ratelimit.bal                       fixed-window rate limiter
+  errors.bal                          standard error-response builders
+  metrics.bal                         in-process request/cache/upstream counters
+  validation.bal                      input validation (city name, currency code, amount)
+  service.bal                         the HTTP service — read this file first
+  tests/                              unit tests (bal test)
 frontend/
-  index.html, style.css, script.js   plain HTML/JS page that calls the API
+  index.html
+  css/    tokens.css, base.css, components.css, layout.css
+  js/     api.js, storage.js, weather-icons.js, charts.js, home.js, map.js, compare.js, main.js
+docs/screenshots/
 ```
 
-## Running it
+## Environment variables
 
-1. Install Ballerina: https://ballerina.io/downloads/ (Windows installer, then restart your terminal).
-2. Verify: `bal version`
-3. Start the backend:
+None required — every upstream API is free and keyless. The only
+configuration is the rate limiter's thresholds; see
+`backend/Config.toml.example`.
+
+## Running locally
+
+1. Install Ballerina: https://ballerina.io/downloads/, then `bal version` to verify.
+2. Start the backend:
    ```
    cd backend
    bal run
    ```
    It listens on `http://localhost:8080`.
-4. Open `frontend/index.html` directly in a browser (or serve it with
-   `npx serve frontend` if `fetch` complains about `file://` origins).
+3. Serve the frontend (plain `file://` will hit CORS issues with `fetch`):
+   ```
+   npx serve frontend
+   ```
+   Then open the URL it prints (defaults to `http://localhost:3000`).
 
-Note: I wrote this without a local Ballerina install to test against, so if
-`bal run` throws a syntax error, it's most likely a small one — Ballerina's
-compiler errors point at the exact line, so paste it back to me and I'll fix
-it with you.
+The frontend auto-detects `localhost`/`127.0.0.1` and points at
+`http://localhost:8080/api/v1`; everywhere else it points at the deployed
+backend.
 
-## Interview prep — questions they could actually ask
+## Testing
 
-**"Why Ballerina instead of Node/Express or Spring Boot?"**
-Ballerina treats network calls and data shapes as first-class language
-features (`http:Client`, records that map directly onto JSON) instead of
-library add-ons. For a service whose whole job is calling other services and
-reshaping their responses, that removes a lot of boilerplate you'd otherwise
-write by hand.
+```
+cd backend
+bal test
+```
 
-**"Walk me through what happens on a request."**
-`GET /api/snapshot/{city}` — the path parameter `city` binds straight into
-the function signature. First it geocodes the name via Open-Meteo's
-geocoding API to get latitude/longitude. Then, since the weather call and
-the currency call are independent, it kicks both off with `start` (which
-returns a `future` immediately without blocking) and `wait`s on both. Once
-both come back it merges the fields into one `CitySnapshot` record and
-returns it — the HTTP layer serializes it to JSON automatically.
+25 unit tests cover input validation, weather-code/AQI mapping, the
+forecast-shape builders, the TTL cache (including expiry), the rate limiter,
+country→currency lookup, and the error-response shape. These are true unit
+tests against pure functions — they don't hit the network, so they're fast
+and deterministic. Testing the HTTP resource functions themselves end-to-end
+would need the upstream `http:Client`s to be mockable, which they currently
+aren't (a documented scope decision, not an oversight — see
+[Technical decisions](#technical-decisions)).
 
-**"What is `start`/`wait` actually doing?"**
-`start someCall()` runs `someCall()` on a separate lightweight worker and
-immediately gives you back a `future` handle instead of blocking. `wait`
-pauses until that future resolves. Doing `start` on both calls before
-`wait`-ing on either means the two HTTP round-trips happen in parallel
-instead of one after another — if each call takes ~200ms, sequential is
-~400ms total, concurrent is ~200ms.
+Manual QA performed on this rebuild: city search + disambiguation, current
+weather, hourly/daily forecast, air quality, currency + converter, map
+search, city comparison, weather analytics, recent searches, favorites,
+light/dark mode, °C/°F (including per-region auto-default), loading/error
+states, API caching (verified via `/metrics`), concurrent upstream calls
+(verified via response latency and `/health`), rate limiting (verified by
+sending 65 rapid requests — the 60th onward returns `429`), and responsive
+layout from ~375px to desktop widths.
 
-**"How do you handle a city that doesn't exist, or an upstream API being down?"**
-The geocoding response's `results` field is typed as optional
-(`GeoResult[]?`) because Open-Meteo omits it when nothing matches — if it's
-`()` or empty, the service returns `404 Not Found` with a JSON message
-instead of crashing. Each of the two concurrent calls is checked for
-`error` separately after `wait`, and returns `502 Bad Gateway` naming which
-upstream failed, rather than a generic 500.
+## Deployment
 
-**"Why define `record` types instead of just using raw JSON?"**
-Records give compile-time checking of field names and types — if Open-Meteo
-renamed `current_weather` I'd get a compile error, not a runtime `null`
-somewhere three functions later. The HTTP client also uses the record type
-to deserialize automatically (`GeoSearchResponse geoData = check
-geoClient->get(path)`), so there's no manual JSON parsing code at all.
+The backend was previously deployed to Azure App Service and the frontend to
+Azure Static Web Apps (see the live demo link above). That deployment
+predates this rebuild and will need to be redeployed — build the backend
+(`bal build` produces `target/bin/city_snapshot_service.jar`) and re-zip-deploy
+it, and redeploy the `frontend/` folder to the Static Web App, then update the
+demo link here once done.
 
-**"Did you hit any real bugs building this? Walk me through one."**
-Yes — the geocoding call failed every time with `Payload binding failed:
-undefined field 'id'`. I'd declared `GeoResult` etc. as **closed** records
-(`record {| ... |}`), which reject any JSON field not explicitly listed.
-Open-Meteo's actual response includes extra fields I hadn't declared (`id`,
-`generationtime_ms`, `winddirection`, ...), so Ballerina's automatic
-JSON-to-record binding errored on every field it didn't recognize. Fix was
-switching those four upstream-response types to **open** records
-(`record { ... }`, no closing `|}`), which only validates the fields you
-declare and ignores the rest. Rule of thumb: keep records for data *you*
-define closed (catches typos/shape drift early), keep records mirroring a
-*third-party* API's response open, since you don't control their schema and
-don't want new fields on their end to break your service.
+## Technical decisions
 
-**"What would you add if you kept working on this?"**
-Caching (weather/FX data doesn't need to be fetched fresh every request),
-a real currency-code list instead of trusting the caller's `currency` query
-param, and probably rate-limiting since all three upstream APIs are free
-tiers with usage limits.
+**Why Ballerina?** Ballerina treats network calls and data shapes as
+first-class language features (`http:Client`, records that map directly onto
+JSON) instead of library add-ons. For a service whose whole job is calling
+other services and reshaping their responses, that removes a lot of
+boilerplate you'd otherwise write by hand — and `start`/`wait` makes
+"run these three independent calls concurrently" a two-keyword change instead
+of a callback/promise/async-await rewrite.
 
-## Next step toward the 3-point minimum
+**Why closed records for this service's own types, open records for upstream
+response shapes?** Records you define yourself (`CitySnapshot`,
+`CurrentWeather`, ...) are closed (`record {| ... |}`) so an unexpected field
+is a bug caught at compile time. Records mirroring a third-party API's
+response (`GeoResult`, `ForecastResponse`, ...) are open, since you don't
+control their schema and don't want a new field on their end to break this
+service.
 
-This project is worth 2 points. The fastest legitimate way to the remaining
-1 point is a small **documentation fix PR** merged into a WSO2 repo (e.g.
-`wso2/docs-apim`, `ballerina-platform/ballerina-lang`, or a product doc
-under `wso2/product-*`) — find a typo, a broken link, or an outdated code
-sample, fix it, open the PR yourself. I can help you find candidates and
-review your fix before you submit, but the PR needs to be opened from your
-own GitHub account since it's reviewed by a real WSO2 maintainer.
+**Why is the rate limiter global instead of per-client?** The thing actually
+worth protecting is the free-tier upstream APIs, which this whole service
+shares one quota with regardless of caller. Per-IP limiting would force every
+resource function onto the manual `http:Caller`-response pattern instead of
+typed returns — a much larger change for a demo-scale service.
+
+**Why is "Travel Snapshot" rule-based instead of AI-generated?** It's three
+`if` statements over real numbers you can already see elsewhere on the page
+(temperature, rain probability, UV, air quality). Calling an LLM API to
+restate that as a sentence would add cost, latency, and a point of failure
+for zero added insight — see the project brief's explicit "don't pretend
+this is AI" requirement.
+
+**Why no historical-weather endpoint?** It was scaffolded (types, a cache
+slot) during an earlier pass but never wired to a resource, and nothing in
+the current feature set needs it — removed rather than left as dead code.
+
+## Future improvements
+
+- Mock the upstream `http:Client`s to unit-test the resource functions'
+  concurrency and partial-failure handling directly
+- An OpenAPI spec generated from the service (Ballerina can do this via
+  `bal openapi`) for interactive API docs
+- Per-IP rate limiting if this ever needs to run somewhere the shared global
+  limiter isn't precise enough
+- Service-worker caching for offline/flaky-connection use
+
+## Limitations
+
+- No automated end-to-end/browser tests — manual QA only (documented above)
+- The rate limiter and caches are in-process and reset on restart; a
+  multi-instance deployment would need a shared store (Redis, etc.) instead
+- Currency conversion uses `open.er-api.com`'s free tier, which updates once
+  every 24 hours — not real-time market rates

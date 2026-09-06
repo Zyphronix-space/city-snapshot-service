@@ -1,0 +1,285 @@
+/* ============================================================
+   CityScope — reusable glass components
+   ============================================================ */
+
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+/* ---- GlassCard ---- */
+.glass-card {
+  width: 100%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  padding: var(--space-5);
+  animation: fade-slide-in 0.5s var(--ease-out) both;
+}
+
+.card-title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: var(--space-4);
+}
+
+/* ---- Buttons ---- */
+.btn-primary {
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 0.65rem 1.4rem;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.btn-primary:hover { opacity: 0.92; }
+.btn-primary:active { transform: scale(0.96); }
+.btn-primary:disabled { opacity: 0.55; cursor: default; }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.3s ease;
+  flex-shrink: 0;
+}
+.icon-btn:hover { transform: translateY(-1px); }
+.icon-btn:active { transform: scale(0.94); }
+
+.pill-btn {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text);
+  border-radius: var(--radius-pill);
+  padding: 0.45rem 0.9rem;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.pill-btn:hover { background: var(--glass-bg-strong); }
+
+/* ---- GlassInput / GlassSearch ---- */
+.search-box, .dashboard-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 0.4rem 0.4rem 1.1rem;
+}
+.search-icon { color: var(--muted); flex-shrink: 0; }
+.search-box input, .dashboard-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 1rem;
+  padding: 0.6rem 0.2rem;
+  min-width: 0;
+}
+/* The pill container gets the focus ring (a box-shadow follows its
+   border-radius cleanly); the bare input inside stays outline-free so
+   focus never renders as a hard rectangle clipping through the pill. */
+.search-box input:focus-visible, .dashboard-search input:focus-visible {
+  outline: none;
+}
+.search-box:focus-within, .dashboard-search:focus-within {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+.search-go {
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 0.6rem 1.2rem;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.search-suggestions {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  max-height: 320px;
+  overflow-y: auto;
+  position: relative;
+  z-index: 30;
+}
+.search-suggestions li {
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.search-suggestions li:hover,
+.search-suggestions li.is-active { background: rgba(127, 127, 127, 0.14); }
+.search-suggestions .suggestion-name { font-weight: 600; }
+.search-suggestions .suggestion-meta { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+.search-suggestions .suggestion-empty,
+.search-suggestions .suggestion-loading { color: var(--muted); cursor: default; }
+
+/* ---- Chips ---- */
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: var(--space-4);
+}
+.chip-group-label { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+.chip-row { display: contents; }
+.chip {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text);
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+.chip:hover { background: var(--glass-bg-strong); }
+.chip-clear {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ---- MetricCard ---- */
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+.metric-card .metric-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.metric-card .metric-value { font-size: 1.4rem; font-weight: 600; }
+
+.metric-row { display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap; }
+.metric-chip {
+  flex: 1;
+  min-width: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: rgba(127, 127, 127, 0.08);
+}
+.metric-chip span { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.metric-chip strong { font-size: 1rem; }
+
+/* ---- GlassSkeleton ---- */
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, rgba(127,127,127,0.12) 25%, rgba(127,127,127,0.22) 37%, rgba(127,127,127,0.12) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+@keyframes skeleton-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+/* ---- Spinner (loading state) ---- */
+.spinner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid rgba(127, 127, 127, 0.25);
+  border-top-color: var(--primary);
+  animation: spin 0.9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 1.8s; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- State blocks (loading / error / empty) ---- */
+.state-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+  margin-top: clamp(1.5rem, 8vh, 3rem);
+  color: var(--text);
+  animation: fade-slide-in 0.4s ease both;
+}
+.state-block p { color: var(--muted); max-width: 360px; }
+.error-state svg { color: var(--danger); }
+
+/* ---- Toast ---- */
+.toast-container {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 100;
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  padding: 0.7rem 1.1rem;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  font-size: 0.88rem;
+  font-weight: 600;
+  animation: toast-in 0.25s var(--ease-out) both;
+}
+@keyframes toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ---- Focus states ---- */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}

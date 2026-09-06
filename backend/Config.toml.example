@@ -1,0 +1,10 @@
+# Optional local configuration for the Ballerina backend.
+#
+# None of CityScope's upstream APIs (Open-Meteo, open.er-api.com) require an
+# API key, so there are no secrets to configure here. The only tunables are
+# the rate limiter's own thresholds — copy this file to `Config.toml`
+# (already git-ignored) only if you want to change them from the defaults.
+
+[stephan.city_snapshot_service]
+rateLimitMaxRequests = 60
+rateLimitWindowSeconds = 60
