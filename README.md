@@ -9,8 +9,7 @@ Engineering Intern application; rebuilt into a full product: the Ballerina
 backend now runs a versioned, cached, rate-limited API, and the frontend is a
 complete multi-view weather app instead of a single search box.
 
-**Live demo:** https://delightful-mud-0758db600.7.azurestaticapps.net *(will
-be redeployed after this rebuild — see [Deployment](#deployment))*
+**Live demo:** https://delightful-mud-0758db600.7.azurestaticapps.net
 
 ## Screenshots
 
@@ -216,12 +215,23 @@ layout from ~375px to desktop widths.
 
 ## Deployment
 
-The backend was previously deployed to Azure App Service and the frontend to
-Azure Static Web Apps (see the live demo link above). That deployment
-predates this rebuild and will need to be redeployed — build the backend
-(`bal build` produces `target/bin/city_snapshot_service.jar`) and re-zip-deploy
-it, and redeploy the `frontend/` folder to the Static Web App, then update the
-demo link here once done.
+The backend runs on Azure App Service (Java 21, Linux) and the frontend on
+Azure Static Web Apps (Free tier) — see the live demo link above.
+
+```
+# Backend: build a fresh jar, then deploy it directly
+cd backend && bal build
+az webapp deploy --resource-group <rg> --name <app-name> \
+  --src-path target/bin/city_snapshot_service.jar --type jar
+
+# Frontend
+npx @azure/static-web-apps-cli deploy ./frontend \
+  --deployment-token <token> --env production
+```
+
+The App Service is configured with `WEBSITES_PORT=8080` (matching the
+Ballerina listener) and no custom startup command — Azure's Java SE runtime
+auto-detects and runs the single deployed jar.
 
 ## Technical decisions
 
