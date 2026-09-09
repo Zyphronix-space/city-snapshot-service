@@ -1,3 +1,12 @@
+<p align="center"><img src="docs/banner.svg" alt="CityScope — Weather, air quality and currency for any city" width="100%" /></p>
+
+<p align="center">
+<img src="https://img.shields.io/badge/-Ballerina-0d0d16?style=flat-square&logo=ballerina&logoColor=white" alt="Ballerina" />
+<img src="https://img.shields.io/badge/-Leaflet-0d0d16?style=flat-square&logo=leaflet&logoColor=white" alt="Leaflet" />
+<img src="https://img.shields.io/badge/-Vanilla%20JS-0d0d16?style=flat-square&logo=javascript&logoColor=white" alt="Vanilla JS" />
+<img src="https://img.shields.io/badge/-WSO2%20Intern%20Project-6C5CE7?style=flat-square" alt="WSO2" />
+</p>
+
 # CityScope
 
 A fast, beautiful city weather and information app. Search any city and see
@@ -58,16 +67,16 @@ Compare view — current conditions for 2–4 cities side by side:
 
 ## Architecture
 
-```
-            CityScope Frontend
-                   |
-                   v
-             Ballerina API (/api/v1)
-                   |
-    +--------------+---------------+--------------+
-    v              v               v              v
-Geocoding       Weather      Air Quality      Currency
-(Open-Meteo)   (Open-Meteo)  (Open-Meteo)   (open.er-api)
+```mermaid
+flowchart TD
+    UI["CityScope Frontend<br/>vanilla JS, multi-view"] --> API["Ballerina API<br/>/api/v1 · cache + rate limit"]
+    API --> GEO["Geocoding<br/>(Open-Meteo)"]
+    API --> WX["Weather<br/>(Open-Meteo)"]
+    API --> AQ["Air Quality<br/>(Open-Meteo)"]
+    API --> FX["Currency<br/>(open.er-api.com)"]
+
+    classDef stage fill:#6C5CE7,stroke:#4834B0,color:#fff
+    class API stage
 ```
 
 `GET /api/v1/snapshot/{city}` geocodes the city once, then fires the weather,
