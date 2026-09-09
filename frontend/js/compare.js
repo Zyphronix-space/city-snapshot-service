@@ -61,7 +61,7 @@ const Compare = (() => {
 
   async function addCity(name, locationHint) {
     if (cities.length >= MAX_CITIES) {
-      Main.showToast(`You can compare up to ${MAX_CITIES} cities — remove one first.`, true);
+      Main.showToast(`You can compare up to ${MAX_CITIES} cities. Remove one first.`, true);
       return;
     }
     try {

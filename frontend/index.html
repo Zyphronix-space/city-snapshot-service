@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
-  <meta name="description" content="CityScope — a fast, beautiful city weather and information app." />
+  <meta name="description" content="CityScope: a fast, beautiful city weather and information app." />
   <title>CityScope</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="css/tokens.css" />
   <link rel="stylesheet" href="css/base.css" />
@@ -70,7 +71,7 @@
         <!-- Hero search — shown until a city is loaded -->
         <div class="search-hero" id="search-hero">
           <h1>Explore any city</h1>
-          <p class="lede">Search for a city to see live weather, forecasts, air quality and currency — no account needed.</p>
+          <p class="lede">Search for a city to see live weather, forecasts, air quality and currency, no account needed.</p>
 
           <form class="search-box glass" id="hero-search-form" role="search" autocomplete="off">
             <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -258,7 +259,7 @@
         <ul class="search-suggestions glass" id="compare-suggestions" role="listbox" hidden></ul>
 
         <div class="state-block" id="compare-empty">
-          <p class="lede">No cities added yet — search above to get started.</p>
+          <p class="lede">No cities added yet. Search above to get started.</p>
         </div>
 
         <div class="compare-grid" id="compare-grid" hidden></div>
@@ -277,15 +278,15 @@
 
         <section class="glass-card about-card">
           <h3 class="card-title">What this is</h3>
-          <p>CityScope answers one question — <em>"What is happening in this city right now?"</em> Search any city and instantly see its current weather, hourly and 7-day forecast, air quality, local time, and currency — all in one place. No sign-up, no account, no paywall.</p>
+          <p>CityScope answers one question: <em>"What is happening in this city right now?"</em> Search any city and instantly see its current weather, hourly and 7-day forecast, air quality, local time, and currency, all in one place. No sign-up, no account, no paywall.</p>
         </section>
 
         <section class="glass-card about-card">
           <h3 class="card-title">Good to know</h3>
           <ul class="tech-list">
-            <li>Everything you see is live data — nothing is made up or estimated.</li>
-            <li>Your recent searches and pinned cities are saved only on this device.</li>
-            <li>Weather and air quality come from Open-Meteo; currency rates from exchangerate-api.com.</li>
+            <li>Everything you see is live data. Nothing is made up or estimated.</li>
+            <li>Your recent searches and pinned cities are saved only on this device, in your browser's local storage. They are never sent to any server.</li>
+            <li>Weather and air quality come from Open-Meteo; currency rates from exchangerate-api.com. See the <a href="privacy.html">Privacy Policy</a> for details.</li>
           </ul>
         </section>
 
@@ -298,8 +299,12 @@
     </main>
 
     <footer class="app-footer">
-      <p>CityScope — weather &amp; air quality by Open-Meteo, currency by exchangerate-api.com.</p>
-      <p><a href="https://github.com/Zyphronix-space/city-snapshot-service" target="_blank" rel="noopener">Source on GitHub</a></p>
+      <p>CityScope: weather &amp; air quality by Open-Meteo, currency by exchangerate-api.com.</p>
+      <p class="footer-links">
+        <a href="https://github.com/Zyphronix-space/city-snapshot-service" target="_blank" rel="noopener">Source on GitHub</a>
+        <span aria-hidden="true">|</span>
+        <a href="privacy.html">Privacy</a>
+      </p>
     </footer>
   </div>
 

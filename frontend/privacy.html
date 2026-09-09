@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="CityScope's privacy policy: what data is collected, what is stored locally only, and which third-party services are used." />
+  <title>Privacy Policy - CityScope</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+</head>
+<body data-theme="system">
+
+  <div class="app-shell">
+
+    <header class="navbar">
+      <div class="nav-inner">
+        <a class="brand" href="index.html" style="text-decoration:none; color:inherit;">
+          <span class="brand-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a5 5 0 1 1 1.5-9.8A6 6 0 0 1 22 12a4.5 4.5 0 0 1-4.5 7Z"/></svg>
+          </span>
+          CityScope
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <div class="legal-page">
+        <a class="back-link" href="index.html">&larr; Back to CityScope</a>
+
+        <h1>Privacy Policy</h1>
+        <p class="lede">Last updated: 9 September 2026</p>
+
+        <section>
+          <h2>What CityScope is</h2>
+          <p>CityScope is an individual student portfolio project built and operated by Stephan Wasalathanthrige. It is not a registered company. This policy explains what happens to your data when you use it, in plain terms.</p>
+        </section>
+
+        <section>
+          <h2>What information is collected</h2>
+          <p>CityScope does not have user accounts, does not use cookies, and does not run any analytics or advertising tracking. The only information involved is:</p>
+          <ul>
+            <li><strong>City search terms.</strong> When you search for a city, that text is sent from your browser to the CityScope backend, which uses it to look up weather, air quality, and currency data.</li>
+            <li><strong>Standard web server logs.</strong> Like any hosted website, the hosting providers below may automatically log technical information such as IP address, browser type, and request timestamps, for security and operational purposes. CityScope's own code does not read or store these logs.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>What is stored only on your device</h2>
+          <p>Your recent searches, pinned ("favorite") cities, theme choice, and temperature unit preference are saved using your browser's local storage. This data:</p>
+          <ul>
+            <li>Never leaves your device or gets sent to CityScope's backend</li>
+            <li>Is not accessible to Stephan Wasalathanthrige or anyone else</li>
+            <li>Can be cleared at any time using the "Clear" button next to Recent Searches, or by clearing your browser's site data for this page</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Third-party services used</h2>
+          <p>CityScope integrates with the following third parties to provide its features. Each operates under its own privacy policy, which CityScope does not control:</p>
+          <ul>
+            <li><strong>Open-Meteo</strong> (geocoding, weather, and air quality data) &mdash; contacted by the CityScope backend on your behalf; your browser does not contact Open-Meteo directly.</li>
+            <li><strong>exchangerate-api.com / open.er-api.com</strong> (currency exchange rates) &mdash; also contacted by the CityScope backend, not directly by your browser.</li>
+            <li><strong>OpenStreetMap tile servers</strong> (via the Leaflet mapping library) &mdash; when you open the Map view, your browser requests map tiles directly from OpenStreetMap's infrastructure, which may log your IP address per its own policy.</li>
+            <li><strong>unpkg.com</strong> (CDN) &mdash; your browser loads the Leaflet mapping library's code directly from this CDN, which may log standard request data.</li>
+            <li><strong>Microsoft Azure</strong> (hosting) &mdash; the frontend is hosted on Azure Static Web Apps and the backend on Azure App Service, both of which may keep standard infrastructure logs.</li>
+          </ul>
+          <p>None of these services receive your name, email, or any account information, because CityScope does not collect any of those in the first place.</p>
+        </section>
+
+        <section>
+          <h2>Cookies</h2>
+          <p>CityScope does not set any cookies. The site uses browser local storage only, described above, which is not a cookie and is not read by any server.</p>
+        </section>
+
+        <section>
+          <h2>Data retention</h2>
+          <p>CityScope's backend does not persist your search terms after each request is handled (aside from a short-lived in-memory cache used to avoid repeat calls to upstream weather/currency providers, which clears automatically and resets whenever the service restarts). Anything you see stored "over time" (recent searches, favorites) lives only in your own browser, under your control.</p>
+        </section>
+
+        <section>
+          <h2>Your choices</h2>
+          <p>You can use CityScope without creating any account. You can clear locally stored data at any time from within the app or your browser settings, and you can stop using the site at any time with nothing left behind on any CityScope server.</p>
+        </section>
+
+        <section>
+          <h2>Changes to this policy</h2>
+          <p>If this policy changes, the "Last updated" date above will change accordingly.</p>
+        </section>
+
+        <section>
+          <h2>Contact</h2>
+          <p>Questions about this policy or the project can be sent to <a href="mailto:stephanwasalathanthrige@gmail.com">stephanwasalathanthrige@gmail.com</a>.</p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <p>CityScope: weather &amp; air quality by Open-Meteo, currency by exchangerate-api.com.</p>
+      <p class="footer-links">
+        <a href="https://github.com/Zyphronix-space/city-snapshot-service" target="_blank" rel="noopener">Source on GitHub</a>
+        <span aria-hidden="true">|</span>
+        <a href="privacy.html">Privacy</a>
+      </p>
+    </footer>
+  </div>
+
+</body>
+</html>

@@ -79,6 +79,20 @@
 }
 .app-footer a { color: var(--muted); text-decoration: underline; }
 .app-footer a:hover { color: var(--text); }
+.footer-links { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.footer-links span { opacity: 0.5; }
+
+/* ---- Legal pages (privacy.html) ---- */
+.legal-page { max-width: 68ch; margin: 0 auto; padding: var(--space-6) 0; }
+.legal-page h1 { font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 800; letter-spacing: -0.01em; }
+.legal-page .lede { margin-bottom: var(--space-5); }
+.legal-page section { margin-top: var(--space-5); }
+.legal-page h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
+.legal-page p, .legal-page li { color: var(--muted); line-height: 1.6; }
+.legal-page ul { padding-left: 1.2rem; margin-top: 0.35rem; }
+.legal-page li { margin-bottom: 0.35rem; }
+.legal-page a { color: var(--primary); }
+.back-link { display: inline-block; margin-bottom: var(--space-4); }
 
 /* ---- Views ---- */
 .view { animation: fade-slide-in 0.35s ease both; }

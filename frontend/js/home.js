@@ -50,7 +50,7 @@ function createCitySearch({ input, form, list, onSelect }) {
     activeIndex = -1;
     list.innerHTML = "";
     if (results.length === 0) {
-      list.innerHTML = `<li class="suggestion-empty">No cities found — press Enter to search anyway</li>`;
+      list.innerHTML = `<li class="suggestion-empty">No cities found. Press Enter to search anyway</li>`;
     } else {
       results.forEach((r) => {
         const li = document.createElement("li");
@@ -282,8 +282,8 @@ const Home = (() => {
       Moderate: "Air quality is acceptable for most people.",
       "Unhealthy for Sensitive Groups": "Sensitive groups may experience mild effects.",
       Unhealthy: "Air quality may affect health with prolonged exposure.",
-      "Very Unhealthy": "Health effects are likely — limit outdoor exertion.",
-      Hazardous: "Serious health risk — avoid outdoor activity.",
+      "Very Unhealthy": "Health effects are likely. Limit outdoor exertion.",
+      Hazardous: "Serious health risk. Avoid outdoor activity.",
     };
     document.getElementById("aqi-explainer").textContent = explainers[airQuality.category] || "";
     document.getElementById("aqi-pm25").textContent = `${airQuality.pm25.toFixed(1)} μg/m³`;
@@ -321,13 +321,13 @@ const Home = (() => {
 
     const temp = current.temperatureCelsius;
     if (temp < 10 || temp > 35) {
-      reasons.push("Extreme temperature — dress accordingly");
+      reasons.push("Extreme temperature: dress accordingly");
       cautionCount += 2;
     } else if (temp > 30) {
-      reasons.push("Warm weather — stay hydrated");
+      reasons.push("Warm weather: stay hydrated");
       cautionCount += 1;
     } else if (temp < 18) {
-      reasons.push("Cool weather — bring a jacket");
+      reasons.push("Cool weather: bring a jacket");
       cautionCount += 1;
     } else {
       reasons.push("Comfortable temperature");
@@ -336,7 +336,7 @@ const Home = (() => {
     if (rainProb < 30) {
       reasons.push("Low rain probability");
     } else if (rainProb < 60) {
-      reasons.push("Moderate rain probability — carry an umbrella");
+      reasons.push("Moderate rain probability: carry an umbrella");
       cautionCount += 1;
     } else {
       reasons.push("High rain probability");
@@ -349,7 +349,7 @@ const Home = (() => {
     }
 
     if (current.uvIndex >= 8) {
-      reasons.push("Very high UV — sun protection recommended");
+      reasons.push("Very high UV: sun protection recommended");
       cautionCount += 1;
     } else if (current.uvIndex >= 6) {
       reasons.push("Moderate-high UV");
