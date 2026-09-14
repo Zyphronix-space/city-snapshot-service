@@ -59,28 +59,71 @@
   cursor: pointer;
 }
 .nav-link:hover { background: rgba(127, 127, 127, 0.1); color: var(--text); }
-.nav-link.is-active { background: var(--glass-bg); color: var(--text); border: 1px solid var(--glass-border); }
+.nav-link.is-active {
+  background: var(--glass-bg);
+  color: var(--text);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
 .nav-actions { display: flex; align-items: center; gap: 0.5rem; }
 .nav-burger { display: none; }
-.nav-mobile { display: none; flex-direction: column; gap: 0.25rem; margin-top: 0.6rem; }
+.nav-mobile {
+  display: none;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.6rem;
+  padding: 0.4rem;
+  border-radius: var(--radius-md);
+}
 .nav-mobile .nav-link { text-align: left; }
 
 /* ---- Footer ---- */
 .app-footer {
   margin-top: var(--space-6);
-  padding: var(--space-5) 0 var(--space-4);
-  border-top: 1px solid var(--hairline);
+  margin-bottom: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
   text-align: center;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  align-items: center;
+  gap: 0.5rem;
 }
-.app-footer a { color: var(--muted); text-decoration: underline; }
-.app-footer a:hover { color: var(--text); }
-.footer-links { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-.footer-links span { opacity: 0.5; }
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 800;
+  font-size: 0.98rem;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.footer-brand .brand-mark {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+.footer-tagline { max-width: 42ch; line-height: 1.5; }
+.footer-links { display: flex; align-items: center; justify-content: center; gap: 1.25rem; margin-top: 0.1rem; }
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+.footer-link:hover { color: var(--text); }
+.footer-copy { font-size: 0.75rem; opacity: 0.75; margin-top: 0.15rem; }
 
 /* ---- Legal pages (privacy.html) ---- */
 .legal-page { max-width: 68ch; margin: 0 auto; padding: var(--space-6) 0; }
@@ -125,11 +168,17 @@
 .dashboard-search { width: 100%; margin: 0 auto; }
 #dashboard-suggestions { width: 100%; }
 
-.hero-card { display: flex; flex-direction: column; gap: var(--space-5); }
+.hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) 0 0;
+  animation: fade-slide-in 0.5s var(--ease-out) both;
+}
 .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4); flex-wrap: wrap; }
 .hero-location-row { display: flex; align-items: center; gap: 0.4rem; }
-.hero-location-row h2 { font-size: clamp(1.4rem, 4vw, 1.8rem); font-weight: 700; letter-spacing: -0.01em; }
-.hero-location p { margin-top: 0.15rem; color: var(--muted); font-weight: 500; }
+.hero-location-row h2 { font-size: clamp(1.2rem, 3.2vw, 1.5rem); font-weight: 700; letter-spacing: -0.01em; }
+.hero-location p { margin-top: 0.15rem; color: var(--muted); font-weight: 500; font-size: 0.9rem; }
 .favorite-btn {
   border: none;
   background: transparent;
@@ -144,16 +193,26 @@
 .favorite-btn[aria-pressed="true"] svg { fill: currentColor; }
 
 .hero-time { text-align: right; }
-.hero-time-value { font-size: 1.3rem; font-weight: 700; }
-.hero-time-sub { color: var(--muted); font-size: 0.82rem; }
+.hero-time-value { font-size: 1.1rem; font-weight: 700; }
+.hero-time-sub { color: var(--muted); font-size: 0.78rem; }
 
-.hero-main { display: flex; align-items: center; gap: var(--space-5); flex-wrap: wrap; }
-.weather-visual { width: clamp(84px, 18vw, 120px); height: clamp(84px, 18vw, 120px); color: var(--text); flex-shrink: 0; }
+/* Apple Weather-style "now" block: no card chrome, everything centered
+   and floating directly on the weather-responsive atmosphere gradient. */
+.hero-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.1rem;
+  padding: clamp(0.5rem, 3vh, 1.5rem) 0 clamp(1rem, 4vh, 2rem);
+}
+.weather-visual { width: clamp(72px, 16vw, 104px); height: clamp(72px, 16vw, 104px); color: var(--text); flex-shrink: 0; margin-bottom: 0.2rem; }
 .weather-visual svg { width: 100%; height: 100%; display: block; }
-.hero-temp-block { flex: 1; min-width: 180px; }
-.hero-temp { font-size: clamp(3.2rem, 12vw, 5rem); font-weight: 200; line-height: 1; letter-spacing: -0.02em; }
-.hero-condition { font-size: clamp(1.05rem, 3vw, 1.3rem); font-weight: 600; margin-top: 0.2rem; }
-.hero-feels { color: var(--muted); margin-top: 0.15rem; }
+.hero-temp-block { min-width: 0; }
+.hero-temp { font-size: clamp(4.5rem, 19vw, 8rem); font-weight: 100; line-height: 1; letter-spacing: -0.03em; }
+.hero-condition { font-size: clamp(1.1rem, 3vw, 1.35rem); font-weight: 500; margin-top: 0.1rem; text-transform: capitalize; }
+.hero-feels { color: var(--muted); margin-top: 0.3rem; font-size: 0.95rem; }
+.hero-hilo { color: var(--muted); margin-top: 0.15rem; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.02em; }
 
 .metrics-grid {
   display: grid;
@@ -209,7 +268,9 @@
 
 .travel-subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: var(--space-3); }
 .travel-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.35rem 0.9rem;
   border-radius: var(--radius-pill);
   font-weight: 700;
@@ -260,6 +321,49 @@
 }
 .converter-field input:focus, .converter-field select:focus {
   background-color: var(--glass-bg-strong);
+}
+
+/* Customizable Select API (Chromium): opts the open dropdown list into the
+   same glass material as the rest of the app instead of the OS-native
+   opaque popup. Browsers without support simply ignore this and keep the
+   normal native select — no fallback branch needed. */
+@supports (appearance: base-select) {
+  .converter-field select {
+    appearance: base-select;
+    /* base-select renders its own native arrow (::picker-icon) — drop the
+       manual chevron background-image above or the two stack. */
+    background-image: none;
+    padding-right: 0.6rem;
+  }
+  .converter-field select::picker(select) {
+    appearance: base-select;
+    margin-top: 0.4rem;
+    padding: 0.4rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg-strong);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+  .converter-field select option {
+    padding: 0.5rem 0.7rem;
+    border-radius: var(--radius-sm);
+    color: var(--text);
+  }
+  .converter-field select option:hover,
+  .converter-field select option:focus {
+    background: rgba(127, 127, 127, 0.14);
+  }
+  .converter-field select option:checked {
+    background: var(--primary);
+    color: var(--primary-contrast);
+  }
+  /* The blue highlight above is enough to show the selected option —
+     drop the native checkmark glyph base-select adds on top of it. */
+  .converter-field select option::checkmark {
+    display: none;
+  }
 }
 .converter-result { margin-top: var(--space-3); font-weight: 600; }
 

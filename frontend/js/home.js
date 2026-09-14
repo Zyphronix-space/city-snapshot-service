@@ -204,6 +204,35 @@ const Home = (() => {
     const offsetHours = utcOffsetSeconds / 3600;
     const sign = offsetHours >= 0 ? "+" : "-";
     document.getElementById("hero-timezone").textContent = `${timezone || "UTC"} (UTC${sign}${Math.abs(offsetHours)})`;
+    updateDaypart();
+  }
+
+  // Minutes-since-midnight for an ISO-local "...THH:MM..." string (sunrise/
+  // sunset come back already expressed in the city's own local time).
+  function minutesOfDay(isoLike) {
+    if (!isoLike) return null;
+    const [, time] = isoLike.split("T");
+    if (!time) return null;
+    const [h, m] = time.split(":").map(Number);
+    return h * 60 + (m || 0);
+  }
+
+  // Day/night for the *searched city*, from its own sunrise/sunset — not
+  // the visiting device's clock or OS theme. Epoch is shifted by the
+  // city's UTC offset and read back with UTC getters (never local/device
+  // getters) so this is correct regardless of what timezone the browser
+  // itself is in.
+  function updateDaypart() {
+    if (!currentSnapshot) return;
+    const { utcOffsetSeconds } = currentSnapshot.location;
+    const { sunrise, sunset } = currentSnapshot.current;
+    const sunriseMin = minutesOfDay(sunrise);
+    const sunsetMin = minutesOfDay(sunset);
+    if (sunriseMin == null || sunsetMin == null) return;
+    const cityNow = new Date(Date.now() + utcOffsetSeconds * 1000);
+    const nowMin = cityNow.getUTCHours() * 60 + cityNow.getUTCMinutes();
+    const isDay = nowMin >= sunriseMin && nowMin < sunsetMin;
+    Main.setDaypart(isDay);
   }
 
   function renderMetricsGrid(current) {
@@ -363,7 +392,14 @@ const Home = (() => {
     const level = cautionCount >= 4 ? "poor" : cautionCount >= 2 ? "caution" : "good";
     const badge = document.getElementById("travel-badge");
     badge.className = `travel-badge is-${level}`;
-    badge.textContent = level === "good" ? "GOOD" : level === "caution" ? "CAUTION" : "POOR";
+    // Pair the state color with both an icon and text, never color alone.
+    const badgeIcons = {
+      good: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+      caution: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>',
+      poor: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>',
+    };
+    const badgeLabel = level === "good" ? "GOOD" : level === "caution" ? "CAUTION" : "POOR";
+    badge.innerHTML = `${badgeIcons[level]}<span>${badgeLabel}</span>`;
     document.getElementById("travel-reasons").innerHTML = reasons.slice(0, 4).map((r) => `<li>${escapeHtml(r)}</li>`).join("");
   }
 
@@ -407,6 +443,14 @@ const Home = (() => {
     document.getElementById("hero-temp").textContent = tempLabel(current.temperatureCelsius);
     document.getElementById("hero-condition").textContent = current.condition.description;
     document.getElementById("hero-feels").textContent = `Feels like ${tempLabel(current.feelsLikeCelsius)}`;
+    const hiloEl = document.getElementById("hero-hilo");
+    const today = daily && daily[0];
+    if (today) {
+      hiloEl.textContent = `H:${tempLabel(today.tempMaxCelsius)} L:${tempLabel(today.tempMinCelsius)}`;
+      hiloEl.hidden = false;
+    } else {
+      hiloEl.hidden = true;
+    }
     renderFavoriteButton(location);
 
     clearInterval(timeInterval);

@@ -11,7 +11,16 @@ const GlassChart = (() => {
 
   function prepareCanvas(canvas) {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const cssHeight = canvas.getAttribute("height") ? Number(canvas.getAttribute("height")) : canvas.clientHeight || 120;
+    // canvas.width/height are *reflected* attributes: setting the property
+    // (below) also rewrites the "height" attribute to the already
+    // DPR-scaled backing-store size. Re-reading getAttribute("height") on
+    // the next redraw would multiply by dpr again — on any dpr>1 screen
+    // (i.e. every phone) that compounds into a runaway "huge chart" on
+    // every refresh/resize. Cache the intended CSS height once instead.
+    if (!canvas.dataset.cssHeight) {
+      canvas.dataset.cssHeight = canvas.getAttribute("height") || String(canvas.clientHeight || 120);
+    }
+    const cssHeight = Number(canvas.dataset.cssHeight);
     const cssWidth = canvas.clientWidth || canvas.parentElement.clientWidth || 300;
     canvas.width = cssWidth * dpr;
     canvas.height = cssHeight * dpr;

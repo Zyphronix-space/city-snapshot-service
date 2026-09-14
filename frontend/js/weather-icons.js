@@ -2,8 +2,13 @@
 // mapping already returns on every `condition.icon` field (clear,
 // partly-cloudy, cloudy, fog, rain, thunderstorm, snow, unknown) — the
 // frontend never re-derives a category from text, it just looks this up.
+//
+// Colors are hardcoded per part (sun = amber, cloud = slate-blue, rain =
+// vivid blue, bolt = amber, snow = icy blue) rather than `currentColor`,
+// so icons read as colorful glyphs — matching the Apple Weather / SF
+// Symbols weather icon language — independent of theme or surrounding text.
 const WEATHER_ICONS = {
-  clear: `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
+  clear: `<svg viewBox="0 0 100 100" fill="none" stroke="#FFA726" stroke-width="3.2" stroke-linecap="round">
     <circle cx="50" cy="50" r="20"/>
     <g>
       <line x1="50" y1="8" x2="50" y2="20"/>
@@ -16,35 +21,37 @@ const WEATHER_ICONS = {
       <line x1="72.4" y1="27.6" x2="80.7" y2="19.3"/>
     </g>
   </svg>`,
-  "partly-cloudy": `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="38" cy="38" r="15"/>
-    <line x1="38" y1="10" x2="38" y2="17"/>
-    <line x1="14" y1="38" x2="21" y2="38"/>
-    <line x1="17.6" y1="17.6" x2="22.6" y2="22.6"/>
-    <path d="M32 62h34a14 14 0 0 0 1-27.9A19 19 0 0 0 31 46.4 12 12 0 0 0 32 62Z"/>
+  "partly-cloudy": `<svg viewBox="0 0 100 100" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#FFA726">
+      <circle cx="38" cy="38" r="15"/>
+      <line x1="38" y1="10" x2="38" y2="17"/>
+      <line x1="14" y1="38" x2="21" y2="38"/>
+      <line x1="17.6" y1="17.6" x2="22.6" y2="22.6"/>
+    </g>
+    <path d="M32 62h34a14 14 0 0 0 1-27.9A19 19 0 0 0 31 46.4 12 12 0 0 0 32 62Z" stroke="#93A5BE"/>
   </svg>`,
-  cloudy: `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+  cloudy: `<svg viewBox="0 0 100 100" fill="none" stroke="#93A5BE" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M27 68h44a16 16 0 0 0 1.2-32A22 22 0 0 0 30 44 14 14 0 0 0 27 68Z"/>
   </svg>`,
-  fog: `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M32 46h36a14 14 0 0 0 1-27.9A19 19 0 0 0 31 30.4 12 12 0 0 0 32 46Z"/>
-    <line x1="18" y1="62" x2="82" y2="62"/>
-    <line x1="24" y1="74" x2="76" y2="74"/>
-    <line x1="30" y1="86" x2="70" y2="86"/>
+  fog: `<svg viewBox="0 0 100 100" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 46h36a14 14 0 0 0 1-27.9A19 19 0 0 0 31 30.4 12 12 0 0 0 32 46Z" stroke="#9AA7B5"/>
+    <line x1="18" y1="62" x2="82" y2="62" stroke="#B9C3CC"/>
+    <line x1="24" y1="74" x2="76" y2="74" stroke="#B9C3CC"/>
+    <line x1="30" y1="86" x2="70" y2="86" stroke="#B9C3CC"/>
   </svg>`,
-  rain: `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+  rain: `<svg viewBox="0 0 100 100" fill="none" stroke="#7E93B4" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M27 54h44a16 16 0 0 0 1.2-32A22 22 0 0 0 30 30 14 14 0 0 0 27 54Z"/>
-    <path d="M34 65 Q30 74 30 79 A3 3 0 1 0 36 79 Q36 74 34 65Z" fill="currentColor" stroke="none"/>
-    <path d="M50 68 Q46 77 46 82 A3 3 0 1 0 52 82 Q52 77 50 68Z" fill="currentColor" stroke="none"/>
-    <path d="M66 65 Q62 74 62 79 A3 3 0 1 0 68 79 Q68 74 66 65Z" fill="currentColor" stroke="none"/>
+    <path d="M34 65 Q30 74 30 79 A3 3 0 1 0 36 79 Q36 74 34 65Z" fill="#3E8EF7" stroke="none"/>
+    <path d="M50 68 Q46 77 46 82 A3 3 0 1 0 52 82 Q52 77 50 68Z" fill="#3E8EF7" stroke="none"/>
+    <path d="M66 65 Q62 74 62 79 A3 3 0 1 0 68 79 Q68 74 66 65Z" fill="#3E8EF7" stroke="none"/>
   </svg>`,
-  thunderstorm: `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+  thunderstorm: `<svg viewBox="0 0 100 100" fill="none" stroke="#5B6B85" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M27 50h44a16 16 0 0 0 1.2-32A22 22 0 0 0 30 26 14 14 0 0 0 27 50Z"/>
-    <path d="M54 62 42 80h12L48 92l16-22H52Z" fill="currentColor" stroke="none"/>
+    <path d="M54 62 42 80h12L48 92l16-22H52Z" fill="#FFCB3D" stroke="none"/>
   </svg>`,
-  snow: `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+  snow: `<svg viewBox="0 0 100 100" fill="none" stroke="#90B4D9" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M27 50h44a16 16 0 0 0 1.2-32A22 22 0 0 0 30 26 14 14 0 0 0 27 50Z"/>
-    <g stroke-width="3.4">
+    <g stroke="#6FC1EC" stroke-width="3.4">
       <line x1="34" y1="66" x2="34" y2="86"/>
       <line x1="26" y1="76" x2="42" y2="76"/>
       <line x1="66" y1="66" x2="66" y2="86"/>
@@ -53,7 +60,7 @@ const WEATHER_ICONS = {
       <line x1="43" y1="80" x2="57" y2="80"/>
     </g>
   </svg>`,
-  unknown: `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+  unknown: `<svg viewBox="0 0 100 100" fill="none" stroke="#9AA5B1" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M27 68h44a16 16 0 0 0 1.2-32A22 22 0 0 0 30 44 14 14 0 0 0 27 68Z"/>
   </svg>`,
 };

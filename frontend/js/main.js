@@ -3,8 +3,21 @@ const Main = (() => {
   function getSystemPrefersDark() {
     return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
   }
+  // "system" mode normally means "OS preference" — here it instead means
+  // "follow the searched city's own day/night", set from that city's
+  // sunrise/sunset by Home.updateDaypart(). Falls back to OS preference
+  // only before the first city has loaded.
+  let cityDaypart = null; // "day" | "night" | null
+  function setDaypart(isDay) {
+    const next = isDay ? "day" : "night";
+    if (next === cityDaypart) return;
+    cityDaypart = next;
+    if (Store.getTheme() === "system") applyTheme("system");
+  }
   function resolveTheme(mode) {
-    return mode === "system" ? (getSystemPrefersDark() ? "dark" : "light") : mode;
+    if (mode !== "system") return mode;
+    if (cityDaypart) return cityDaypart === "night" ? "dark" : "light";
+    return getSystemPrefersDark() ? "dark" : "light";
   }
   function applyTheme(mode) {
     // tokens.css keys its dark-mode overrides off :root (the <html> element),
@@ -102,9 +115,11 @@ const Main = (() => {
     Compare.init();
     switchView("home");
     Home.loadCity("Colombo");
+    const footerYear = document.getElementById("footer-year");
+    if (footerYear) footerYear.textContent = new Date().getFullYear();
   }
 
-  return { init, switchView, showToast, setWeatherAtmosphere, syncUnitButton: () => applyUnit(Store.getUnit()) };
+  return { init, switchView, showToast, setWeatherAtmosphere, setDaypart, syncUnitButton: () => applyUnit(Store.getUnit()) };
 })();
 
 if (document.readyState === "loading") {
