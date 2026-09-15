@@ -9,15 +9,18 @@ const MapView = (() => {
     if (map) return map;
     map = L.map("map-container", { scrollWheelZoom: true }).setView([20, 10], 2);
     // Raw tile.openstreetmap.org (especially the deprecated {s} lettered
-    // subdomains) now 403s embedded apps that don't follow OSM's volunteer
-    // tile usage policy. CARTO's basemaps are explicitly free for this use
-    // and its dark style matches the rest of the UI.
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: "abcd",
-      maxZoom: 20,
-    }).addTo(map);
+    // subdomains) 403s embedded apps that don't follow OSM's volunteer tile
+    // usage policy, and CARTO's basemaps now require a signed-up API key
+    // (see carto.com/basemaps/apikey). Esri's World Dark Gray Base is free
+    // and keyless for basemap display, no registration needed.
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+      {
+        attribution:
+          "Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors, and the GIS user community",
+        maxZoom: 16,
+      }
+    ).addTo(map);
     return map;
   }
 
