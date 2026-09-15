@@ -8,9 +8,15 @@ const MapView = (() => {
   function ensureMap() {
     if (map) return map;
     map = L.map("map-container", { scrollWheelZoom: true }).setView([20, 10], 2);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 18,
+    // Raw tile.openstreetmap.org (especially the deprecated {s} lettered
+    // subdomains) now 403s embedded apps that don't follow OSM's volunteer
+    // tile usage policy. CARTO's basemaps are explicitly free for this use
+    // and its dark style matches the rest of the UI.
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 20,
     }).addTo(map);
     return map;
   }
