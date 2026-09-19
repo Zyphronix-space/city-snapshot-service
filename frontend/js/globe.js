@@ -298,7 +298,12 @@ const GlobeView = (() => {
     if (!dragging) return;
     const dx = e.clientX - pointerStartX;
     const dy = e.clientY - pointerStartY;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragMoved = true;
+    // A real tap/click always has a little wobble between press and
+    // release (touch imprecision, mouse jitter, or just how some browsers
+    // synthesize the pointer sequence) — 3px was tight enough that
+    // ordinary clicks on a city label were getting misread as a drag and
+    // silently swallowed (see buildMarkerEl's dragMoved check).
+    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) dragMoved = true;
     phi = dragPhiStart + dx / 180;
     theta = clamp(dragThetaStart - dy / 220, -1.1, 1.1);
   }
@@ -319,6 +324,19 @@ const GlobeView = (() => {
     } catch {
       /* pointer already released */
     }
+    // stage.setPointerCapture() above retargets every pointer event for
+    // this gesture to `stage`, including — critically — the mousedown the
+    // browser derives pointerdown from. mouseup fires after capture is
+    // released here, so it targets the real element again; the resulting
+    // mousedown/mouseup target mismatch means the browser's synthesized
+    // "click" can land on `stage` instead of the marker button that was
+    // actually tapped, and silently never reach its click listener. Hit-
+    // test the release point ourselves instead of trusting that click.
+    if (!dragMoved) {
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const markerBtn = el && el.closest(".globe-marker");
+      if (markerBtn) selectMarkerEl(markerBtn);
+    }
   }
 
   function onWheel(e) {
@@ -337,12 +355,25 @@ const GlobeView = (() => {
     return `${loc.name}|${loc.country || ""}`;
   }
 
+  // Guards against a marker being opened twice when a click both gets
+  // hit-tested manually in onPointerUp AND still reaches the button's own
+  // "click" listener natively (browser/timing dependent — see onPointerUp).
+  let lastPointerSelectAt = 0;
+
+  function selectMarkerEl(markerBtn) {
+    const m = markers.find((mk) => mk.id === markerBtn.dataset.markerId);
+    if (!m) return;
+    lastPointerSelectAt = Date.now();
+    onSelectCity && onSelectCity(m);
+  }
+
   function buildMarkerEl(m) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "globe-marker" + (m.selected ? " is-selected" : "");
     btn.style.left = "-100%"; // parked off-frame until the first position pass
     btn.style.top = "-100%";
+    btn.dataset.markerId = m.id;
     const metaLabel = m.country ? `${m.name}, ${m.country}` : m.name;
     btn.setAttribute("aria-label", `Open ${metaLabel}`);
     btn.title = metaLabel;
@@ -350,8 +381,13 @@ const GlobeView = (() => {
     label.className = "globe-marker-label";
     label.textContent = m.name; // just the city name on the globe itself — full "City, Country" is in the title/aria-label
     btn.append(label);
+    // Handles keyboard activation (Enter/Space on a focused marker), which
+    // fires a genuine "click" with no pointer capture involved. Pointer/
+    // mouse/touch clicks are handled in onPointerUp instead — see there
+    // for why this listener alone isn't reliable for those.
     btn.addEventListener("click", () => {
-      if (dragMoved) return; // a drag that happened to end over a marker isn't a click
+      if (dragMoved) return;
+      if (Date.now() - lastPointerSelectAt < 500) return; // already handled via onPointerUp
       onSelectCity && onSelectCity(m);
     });
     return btn;
@@ -376,9 +412,23 @@ const GlobeView = (() => {
     if (!ready || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
       return Promise.resolve();
     }
+    // rotationToFace's theta pitches the WHOLE sphere (poles included)
+    // around the target's own local east-west axis, by exactly its
+    // latitude, to put that single point dead center. For a high-latitude
+    // city (London, Moscow, ...) that swings a pole into view and rolls
+    // every other meridian with it — the rest of the map ends up looking
+    // rotated/upside-down-ish relative to what "north stays up" leads
+    // people to expect, even though the target itself is technically
+    // centered. Yaw (phi) doesn't have this problem — spinning around the
+    // vertical axis never tilts the poles — so we take the full yaw but
+    // only a damped, tightly-capped slice of the pitch: enough to nudge
+    // toward the target's hemisphere without ever tipping into a
+    // pole-on view. The target ends up close to center horizontally and
+    // approximately placed vertically, not pixel-exact, in exchange for
+    // the map always staying recognisable.
     const rot = rotationToFace(latitude, longitude);
     targetPhi = rot.phi;
-    targetTheta = clamp(rot.theta, -1.1, 1.1);
+    targetTheta = clamp(rot.theta * 0.45, -0.5, 0.5);
     return new Promise((resolve) => setTimeout(resolve, FOCUS_SETTLE_MS));
   }
 
