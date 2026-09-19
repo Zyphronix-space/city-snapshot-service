@@ -32,63 +32,92 @@
         <a class="back-link" href="index.html">&larr; Back to CityScope</a>
 
         <h1>Privacy Policy</h1>
-        <p class="lede">Last updated: 9 September 2026</p>
+        <p class="lede">Last updated: 19 September 2026</p>
 
         <section>
           <h2>What CityScope is</h2>
-          <p>CityScope is an individual student portfolio project built and operated by Stephan Wasalathanthrige. It is not a registered company. This policy explains what happens to your data when you use it, in plain terms.</p>
+          <p>CityScope is an individual student portfolio project built and operated by Stephan Wasalathanthrige. It is not a registered company. This policy explains, in plain terms, what happens to information when you use CityScope.</p>
         </section>
 
         <section>
           <h2>What information is collected</h2>
-          <p>CityScope does not have user accounts, does not use cookies, and does not run any analytics or advertising tracking. The only information involved is:</p>
+          <p>CityScope does not have user accounts, does not use cookies, and does not run analytics or advertising tracking.</p>
+          <p>The information involved when you use the service is:</p>
           <ul>
-            <li><strong>City search terms.</strong> When you search for a city, that text is sent from your browser to the CityScope backend, which uses it to look up weather, air quality, and currency data.</li>
-            <li><strong>Standard web server logs.</strong> Like any hosted website, the hosting providers below may automatically log technical information such as IP address, browser type, and request timestamps, for security and operational purposes. CityScope's own code does not read or store these logs.</li>
+            <li><strong>City search terms.</strong> When you search for a city, the search information is sent from your browser to the CityScope backend. The backend uses it to look up weather, air quality, and currency data.</li>
+            <li><strong>Location coordinates, only if you choose "Use my location".</strong> See the "Location access" section below for exactly what is sent and what isn't.</li>
+            <li><strong>Platform request logs.</strong> The backend is hosted on Azure App Service. Azure's configured HTTP access logging records the requesting IP address and the full request path for requests received by the backend. The request path can contain the city name searched for. These logs are retained for up to 3 days on the hosting platform and are automatically removed according to the configured retention policy. CityScope's application code does not read, export, or analyze these logs, and they are not sent to an analytics or advertising service.</li>
           </ul>
         </section>
 
         <section>
           <h2>What is stored only on your device</h2>
-          <p>Your recent searches, pinned ("favorite") cities, theme choice, and temperature unit preference are saved using your browser's local storage. This data:</p>
+          <p>Your recent searches, pinned ("favorite") cities, theme choice, and temperature unit preference are saved using your browser's local storage.</p>
+          <p>This data:</p>
           <ul>
             <li>Never leaves your device or gets sent to CityScope's backend</li>
-            <li>Is not accessible to Stephan Wasalathanthrige or anyone else</li>
-            <li>Can be cleared at any time using the "Clear" button next to Recent Searches, or by clearing your browser's site data for this page</li>
+            <li>Is not accessible to Stephan Wasalathanthrige through CityScope</li>
+            <li>Can be cleared at any time using the "Clear" button next to Recent Searches, or by clearing your browser's site data for the page</li>
           </ul>
+        </section>
+
+        <section>
+          <h2>Location access</h2>
+          <p>CityScope can request your device's location, but only when you explicitly choose "Use my location" in the app. It is never requested automatically on page load, and the feature is entirely optional &mdash; you can search for a city by name instead.</p>
+          <p>When you click "Use my location":</p>
+          <ul>
+            <li>CityScope first shows its own explanation, before your browser's native location permission prompt appears.</li>
+            <li>If you allow it, your browser reports your device's location (latitude and longitude &mdash; depending on your device and browser, this can be precise, not just approximate).</li>
+            <li>Those coordinates, together with your browser's timezone, are sent to the CityScope backend for that one request &mdash; the same backend, and the same kind of request, used for an ordinary city search &mdash; and are used only to fetch weather, air quality, and currency data for that location.</li>
+          </ul>
+          <p>What CityScope does <strong>not</strong> do with your location:</p>
+          <ul>
+            <li>It is not reverse geocoded into a city or country name. CityScope has no reverse-geocoding capability; the dashboard shows "My Location" rather than a guessed city or country.</li>
+            <li>It is not sent to any third-party geocoding or mapping provider.</li>
+            <li>It is not written to your browser's local storage.</li>
+            <li>It is not added to Recent Searches or My Cities (Favorites).</li>
+            <li>It is not retained by CityScope's backend beyond handling that one request, other than the same short-lived cache and platform request log described elsewhere in this policy, on the same terms as any other search.</li>
+          </ul>
+          <p>You can deny or revoke location access at any time through your browser's site settings for CityScope. If access is already blocked, CityScope shows a message explaining how to re-enable it rather than prompting you again.</p>
         </section>
 
         <section>
           <h2>Third-party services used</h2>
-          <p>CityScope integrates with the following third parties to provide its features. Each operates under its own privacy policy, which CityScope does not control:</p>
+          <p>CityScope uses the following third-party services to provide its features. These services operate independently and are subject to their own policies and practices:</p>
           <ul>
-            <li><strong>Open-Meteo</strong> (geocoding, weather, and air quality data) &mdash; contacted by the CityScope backend on your behalf; your browser does not contact Open-Meteo directly.</li>
-            <li><strong>exchangerate-api.com / open.er-api.com</strong> (currency exchange rates) &mdash; also contacted by the CityScope backend, not directly by your browser.</li>
-            <li><strong>OpenStreetMap tile servers</strong> (via the Leaflet mapping library) &mdash; when you open the Map view, your browser requests map tiles directly from OpenStreetMap's infrastructure, which may log your IP address per its own policy.</li>
-            <li><strong>unpkg.com</strong> (CDN) &mdash; your browser loads the Leaflet mapping library's code directly from this CDN, which may log standard request data.</li>
-            <li><strong>Microsoft Azure</strong> (hosting) &mdash; the frontend is hosted on Azure Static Web Apps and the backend on Azure App Service, both of which may keep standard infrastructure logs.</li>
+            <li><strong>Open-Meteo</strong> &mdash; used by the CityScope backend for geocoding, weather, and air quality data. Your browser does not contact Open-Meteo directly.</li>
+            <li><strong>exchangerate-api.com / open.er-api.com</strong> &mdash; used by the CityScope backend for currency exchange rates. Your browser does not contact these services directly.</li>
+            <li><strong>Esri (ArcGIS Online) map tiles</strong> &mdash; when you open the Map view, your browser requests map tiles directly from Esri's infrastructure. These requests may include your IP address and are subject to Esri's own policies. Required Esri attribution is displayed on the map.</li>
+            <li><strong>unpkg.com</strong> &mdash; your browser loads the Leaflet mapping library directly from this CDN. The CDN may receive standard technical request information associated with serving that file.</li>
+            <li><strong>Microsoft Azure</strong> &mdash; the frontend is hosted on Azure Static Web Apps and the backend is hosted on Azure App Service. The backend hosting environment retains the short-lived HTTP request logs described above. No analytics or tracking service is attached to the Static Web App.</li>
           </ul>
-          <p>None of these services receive your name, email, or any account information, because CityScope does not collect any of those in the first place.</p>
+          <p>CityScope does not collect your name, email address, account information, or payment information.</p>
         </section>
 
         <section>
           <h2>Cookies</h2>
-          <p>CityScope does not set any cookies. The site uses browser local storage only, described above, which is not a cookie and is not read by any server.</p>
+          <p>CityScope does not set or use cookies &mdash; including after adding the "Use my location" feature described above. Location access is a browser permission, not a cookie, and CityScope does not store a separate "location consent" preference of any kind. There is no cookie-consent banner because there are no cookies to consent to.</p>
+          <p>The site uses browser local storage for the preferences and locally stored information described above (recent searches, favorites, theme, and unit preference). Location coordinates are never written to local storage. None of this local storage is sent to the CityScope backend.</p>
         </section>
 
         <section>
           <h2>Data retention</h2>
-          <p>CityScope's backend does not persist your search terms after each request is handled (aside from a short-lived in-memory cache used to avoid repeat calls to upstream weather/currency providers, which clears automatically and resets whenever the service restarts). Anything you see stored "over time" (recent searches, favorites) lives only in your own browser, under your control.</p>
+          <p>CityScope's backend does not maintain a permanent database of your searches.</p>
+          <p>The backend uses a short-lived in-memory cache to avoid unnecessary repeat requests to upstream weather, air-quality, geocoding, and currency providers. This cache clears automatically when the service restarts and is subject to the cache periods described in the Terms of Use.</p>
+          <p>Separately, Azure App Service's configured HTTP request log is retained for up to 3 days before being automatically removed according to the configured retention policy.</p>
+          <p>Recent searches, favorites, theme settings, and temperature-unit preferences stored in your browser remain on your device until you clear them.</p>
         </section>
 
         <section>
           <h2>Your choices</h2>
-          <p>You can use CityScope without creating any account. You can clear locally stored data at any time from within the app or your browser settings, and you can stop using the site at any time with nothing left behind on any CityScope server.</p>
+          <p>You can use CityScope without creating an account.</p>
+          <p>You can clear locally stored data at any time from within the app or through your browser settings. You can also stop using the service at any time.</p>
+          <p>Because Azure's short-lived hosting logs are generated by the hosting platform, stopping use of CityScope does not immediately remove a request that has already been recorded in those logs. Those logs are configured to be retained for no more than 3 days.</p>
         </section>
 
         <section>
           <h2>Changes to this policy</h2>
-          <p>If this policy changes, the "Last updated" date above will change accordingly.</p>
+          <p>If this policy changes, the "Last updated" date above will be updated accordingly.</p>
         </section>
 
         <section>
@@ -104,6 +133,8 @@
         <a href="https://github.com/Zyphronix-space/city-snapshot-service" target="_blank" rel="noopener">Source on GitHub</a>
         <span aria-hidden="true">|</span>
         <a href="privacy.html">Privacy</a>
+        <span aria-hidden="true">|</span>
+        <a href="terms.html">Terms</a>
       </p>
     </footer>
   </div>

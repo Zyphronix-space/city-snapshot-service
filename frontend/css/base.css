@@ -5,6 +5,20 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
+/* Visually hides content while keeping it in the accessibility tree —
+   used for the screen-reader-only data tables behind each canvas chart. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 html, body { height: 100%; }
 
 body {

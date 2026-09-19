@@ -21,8 +21,8 @@ isolated function checkRateLimit() returns http:TooManyRequests? {
 
 isolated function toCityLocation(GeoResult g, ForecastResponse w) returns CityLocation => {
     name: g.name,
-    country: g.country,
-    countryCode: g.country_code,
+    country: g.country ?: "",
+    countryCode: g.country_code ?: "",
     latitude: g.latitude,
     longitude: g.longitude,
     timezone: w.timezone,
@@ -49,7 +49,13 @@ isolated function geocodeSearch(string city) returns GeoResult[]|error {
     }
     serviceMetrics.recordCacheMiss();
     decimal startedAt = time:monotonicNow();
-    GeoSearchResponse|error geoData = geoClient->get(string `/v1/search?name=${urlEncode(city)}&count=8&language=en&format=json`);
+    // count=8 previously meant that for an ambiguous name shared by many
+    // places (e.g. "Springfield", or a smaller city outranked by
+    // more-populous namesakes), only the 8 most populous upstream matches
+    // were ever fetched — anything past that cutoff couldn't appear no
+    // matter how high a caller's own `max` was. 20 gives real headroom
+    // without fetching/caching an unbounded amount per query.
+    GeoSearchResponse|error geoData = geoClient->get(string `/v1/search?name=${urlEncode(city)}&count=20&language=en&format=json`);
     int latencyMs = <int>((time:monotonicNow() - startedAt) * 1000);
     if geoData is error {
         serviceMetrics.recordUpstreamFailure(UPSTREAM_GEOCODING, geoData.message());
@@ -236,8 +242,8 @@ service /api/v1 on new http:Listener(8080) {
         if cap < 1 {
             cap = 1;
         }
-        if cap > 10 {
-            cap = 10;
+        if cap > 20 {
+            cap = 20;
         }
 
         GeoResult[]|error results = geocodeSearch(cityResult);
@@ -252,8 +258,8 @@ service /api/v1 on new http:Listener(8080) {
             }
             mapped.push({
                 name: r.name,
-                country: r.country,
-                countryCode: r.country_code,
+                country: r.country ?: "",
+                countryCode: r.country_code ?: "",
                 region: r.admin1,
                 latitude: r.latitude,
                 longitude: r.longitude,
@@ -314,7 +320,7 @@ service /api/v1 on new http:Listener(8080) {
         if fxResult is ExchangeRateResponse {
             string target = currency is string && currency.trim().length() > 0
                 ? currency.trim().toUpperAscii()
-                : currencyForCountry(location.country_code);
+                : currencyForCountry(location.country_code ?: "");
             float? rate = fxResult.rates[target];
             if rate is float {
                 currencyInfo = {
@@ -411,8 +417,8 @@ service /api/v1 on new http:Listener(8080) {
             ? toCityLocation(location, weatherResult)
             : {
                 name: location.name,
-                country: location.country,
-                countryCode: location.country_code,
+                country: location.country ?: "",
+                countryCode: location.country_code ?: "",
                 latitude: location.latitude,
                 longitude: location.longitude,
                 timezone: location.timezone,

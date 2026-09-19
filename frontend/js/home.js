@@ -16,6 +16,13 @@ function unitForCountry(countryCode) {
   return FAHRENHEIT_COUNTRIES.has((countryCode || "").toUpperCase()) ? "F" : "C";
 }
 
+// Synthetic "city" label used only for browser-geolocation results (see
+// location.js). The backend's resolveCityOrExplicit() skips geocoding
+// entirely whenever lat/lon are both present, so this string is never
+// looked up — it's just the display name. Never reverse-geocoded, never
+// added to Recent/Favorites, never persisted.
+const MY_LOCATION_LABEL = "My Location";
+
 function escapeHtml(str) {
   return String(str ?? "").replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
@@ -34,6 +41,7 @@ function createCitySearch({ input, form, list, onSelect }) {
   function close() {
     list.hidden = true;
     input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
     activeIndex = -1;
     // Invalidate any in-flight debounced search so its response can't
     // reopen the list after the box has already been closed/submitted.
@@ -42,7 +50,20 @@ function createCitySearch({ input, form, list, onSelect }) {
   }
 
   function highlight() {
-    [...list.children].forEach((li, i) => li.classList.toggle("is-active", i === activeIndex));
+    let activeId = null;
+    [...list.children].forEach((li, i) => {
+      const active = i === activeIndex;
+      li.classList.toggle("is-active", active);
+      if (li.getAttribute("role") === "option") {
+        li.setAttribute("aria-selected", String(active));
+        if (active) activeId = li.id;
+      }
+    });
+    if (activeId) {
+      input.setAttribute("aria-activedescendant", activeId);
+    } else {
+      input.removeAttribute("aria-activedescendant");
+    }
   }
 
   function renderResults(results) {
@@ -52,9 +73,11 @@ function createCitySearch({ input, form, list, onSelect }) {
     if (results.length === 0) {
       list.innerHTML = `<li class="suggestion-empty">No cities found. Press Enter to search anyway</li>`;
     } else {
-      results.forEach((r) => {
+      results.forEach((r, i) => {
         const li = document.createElement("li");
+        li.id = `${list.id}-option-${i}`;
         li.setAttribute("role", "option");
+        li.setAttribute("aria-selected", "false");
         const meta = [r.region, r.country].filter(Boolean).join(", ");
         li.innerHTML = `<span class="suggestion-name">${escapeHtml(r.name)}</span><span class="suggestion-meta">${escapeHtml(meta)}</span>`;
         li.addEventListener("click", () => selectResult(r));
@@ -63,6 +86,7 @@ function createCitySearch({ input, form, list, onSelect }) {
     }
     list.hidden = false;
     input.setAttribute("aria-expanded", "true");
+    highlight();
   }
 
   function selectResult(result) {
@@ -84,7 +108,7 @@ function createCitySearch({ input, form, list, onSelect }) {
     const token = ++requestToken;
     debounceTimer = setTimeout(async () => {
       try {
-        const results = await Api.searchCities(q, 6);
+        const results = await Api.searchCities(q, 10);
         if (token !== requestToken) return; // stale response — a newer keystroke already fired
         renderResults(results);
       } catch (err) {
@@ -134,7 +158,7 @@ function createCitySearch({ input, form, list, onSelect }) {
    ---------------------------------------------------------------- */
 const Home = (() => {
   let currentSnapshot = null;
-  let currentLocationQuery = "Colombo";
+  let currentLocationQuery = null;
   let timeInterval = null;
 
   function tempValue(celsius) {
@@ -185,10 +209,18 @@ const Home = (() => {
       document.getElementById("search-hero").hidden = true;
       document.getElementById("dashboard").hidden = false;
       renderDashboard(snapshot);
-      Store.addRecent(snapshot.location);
-      renderRecentChips();
+      // "My Location" is deliberately never written to Recent Searches or
+      // Favorites — those are named-city history, and this is raw
+      // coordinates for a single request (see location.js / privacy.html).
+      if (snapshot.location.name !== MY_LOCATION_LABEL) {
+        Store.addRecent(snapshot.location);
+        renderRecentChips();
+      }
       Main.setWeatherAtmosphere(snapshot.current.condition.icon);
-      Main.showToast(`Showing ${snapshot.location.name}, ${snapshot.location.country}`);
+      const toastLabel = snapshot.location.country
+        ? `${snapshot.location.name}, ${snapshot.location.country}`
+        : snapshot.location.name;
+      Main.showToast(`Showing ${toastLabel}`);
     } catch (err) {
       showError(err);
     }
@@ -272,11 +304,15 @@ const Home = (() => {
         </div>`;
     }).join("");
 
+    const hourlyLabels = next24.map((h) => h.time.split("T")[1]?.slice(0, 5) || "");
+    const hourlyValues = next24.map((h) => tempValue(h.temperatureCelsius));
+    const hourlyFormat = (v) => `${Math.round(v)}°${Store.getUnit()}`;
     GlassChart.line(document.getElementById("hourly-chart"), {
-      labels: next24.map((h) => h.time.split("T")[1]?.slice(0, 5) || ""),
-      values: next24.map((h) => tempValue(h.temperatureCelsius)),
+      labels: hourlyLabels,
+      values: hourlyValues,
       formatValue: (v) => `${Math.round(v)}°`,
     });
+    fillChartTable("hourly-chart-table-body", hourlyLabels, hourlyValues, hourlyFormat);
   }
 
   function renderDaily(daily) {
@@ -320,30 +356,114 @@ const Home = (() => {
     document.getElementById("aqi-ozone").textContent = `${airQuality.ozone.toFixed(1)} μg/m³`;
   }
 
-  function renderCurrency(currency) {
+  // The manual converter (pick any two currencies) is independent of the
+  // detected base/target above, so it stays usable even when there's no
+  // detected currency at all — previously this only got populated in the
+  // success path below, leaving the <select>s empty (no options) whenever
+  // currency data was unavailable.
+  function populateConverterSelects(preferredFrom, preferredTo) {
+    const fromSelect = document.getElementById("converter-from");
+    const toSelect = document.getElementById("converter-to");
+    const codes = new Set(COMMON_CURRENCIES);
+    if (preferredFrom) codes.add(preferredFrom);
+    if (preferredTo) codes.add(preferredTo);
+    const options = [...codes].sort().map((c) => `<option value="${c}">${c}</option>`).join("");
+    fromSelect.innerHTML = options;
+    toSelect.innerHTML = options;
+    fromSelect.value = preferredFrom || "USD";
+    toSelect.value = preferredTo || "USD";
+  }
+
+  function renderCurrency(currency, isMyLocation) {
+    document.getElementById("converter-result").textContent = "";
+    // The backend has no country for a raw-coordinate lookup, so its
+    // currency block (if any) would just be the USD fallback — showing
+    // that as "your" currency would misleadingly imply it's local to you.
+    // Rather than fabricate a country from coordinates, we simply don't
+    // show a detected currency for My Location; the manual converter below
+    // still works for any pair.
+    const arrow = document.getElementById("currency-arrow");
+    if (isMyLocation) {
+      document.getElementById("currency-base-line").textContent = "Currency";
+      document.getElementById("currency-target-line").textContent = "Unavailable";
+      document.getElementById("currency-updated").textContent = "Unavailable for this location — CityScope doesn't determine a country from device location. Use the converter below for any currency pair.";
+      arrow.hidden = true;
+      populateConverterSelects();
+      return;
+    }
     if (!currency) {
       document.getElementById("currency-base-line").textContent = "Unavailable";
       document.getElementById("currency-target-line").textContent = "—";
       document.getElementById("currency-updated").textContent = "Currency data couldn't be retrieved right now.";
+      arrow.hidden = true;
+      populateConverterSelects();
       return;
     }
+    arrow.hidden = false;
     document.getElementById("currency-base-line").textContent = `1 ${currency.baseCurrency}`;
     document.getElementById("currency-target-line").textContent = `${currency.exchangeRate.toFixed(2)} ${currency.targetCurrency}`;
     document.getElementById("currency-updated").textContent = `Last updated ${currency.lastUpdatedUtc}`;
+    populateConverterSelects(currency.baseCurrency, currency.targetCurrency);
+  }
 
-    const fromSelect = document.getElementById("converter-from");
-    const toSelect = document.getElementById("converter-to");
-    const codes = new Set([...COMMON_CURRENCIES, currency.baseCurrency, currency.targetCurrency]);
-    const options = [...codes].sort().map((c) => `<option value="${c}">${c}</option>`).join("");
-    fromSelect.innerHTML = options;
-    toSelect.innerHTML = options;
-    fromSelect.value = currency.baseCurrency;
-    toSelect.value = currency.targetCurrency;
-    document.getElementById("converter-result").textContent = "";
+  // "Outdoor window" implicitly means daylight — a technically-dry, mild
+  // 1 AM doesn't answer "when should I go outside". Each daily entry
+  // carries its own real sunrise/sunset, so hours are checked against the
+  // sunrise/sunset of whichever calendar day they actually fall on (the
+  // 24h hourly range can cross into tomorrow), rather than guessed.
+  function isDaylightHour(h, daily) {
+    const [datePart] = h.time.split("T");
+    const dayEntry = daily.find((d) => d.date === datePart);
+    const toMin = (iso) => {
+      const t = iso && iso.split("T")[1];
+      if (!t) return null;
+      const [hh, mm] = t.split(":").map(Number);
+      return hh * 60 + (mm || 0);
+    };
+    const hMin = toMin(h.time);
+    const sunrise = dayEntry && toMin(dayEntry.sunrise);
+    const sunset = dayEntry && toMin(dayEntry.sunset);
+    if (hMin == null || sunrise == null || sunset == null) return true; // unknown day -> don't exclude it
+    return hMin >= sunrise && hMin <= sunset;
+  }
+
+  // Scores each of the next 24 hourly readings for outdoor comfort (lower
+  // rain chance and moderate temperature/wind score higher), then finds the
+  // best-scoring 2-hour daylight block. Returns null rather than a
+  // low-confidence guess when nothing clears a reasonable bar — the caller
+  // must not invent a "best window" when the data doesn't support one.
+  function findBestOutdoorWindow(hourly, daily) {
+    if (!hourly || hourly.length < 2 || !daily) return null;
+    const next24 = hourly.slice(0, 24).filter((h) => isDaylightHour(h, daily));
+    const scoreOf = (h) => {
+      let score = 100;
+      const t = h.temperatureCelsius;
+      if (t < 10 || t > 35) score -= 60;
+      else if (t < 15 || t > 32) score -= 30;
+      else if (t < 18 || t > 28) score -= 10;
+      score -= h.precipitationProbabilityPercent * 0.8;
+      if (h.windSpeedKmh > 40) score -= 20;
+      else if (h.windSpeedKmh > 25) score -= 8;
+      return score;
+    };
+    let best = null;
+    for (let i = 0; i < next24.length - 1; i++) {
+      const a = next24[i];
+      const b = next24[i + 1];
+      // Only pair genuinely adjacent hours — filtering to daylight can
+      // leave gaps (e.g. today's last daylight hour next to tomorrow's
+      // first), which would otherwise claim a contiguous window that isn't.
+      if (new Date(b.time) - new Date(a.time) > 3600 * 1000) continue;
+      const avgScore = (scoreOf(a) + scoreOf(b)) / 2;
+      if (!best || avgScore > best.avgScore) best = { start: a, end: b, avgScore };
+    }
+    if (!best || best.avgScore < 55) return null;
+    const timeOf = (h) => h.time.split("T")[1]?.slice(0, 5) || h.time;
+    return { startLabel: timeOf(best.start), endLabel: timeOf(best.end) };
   }
 
   function renderTravelSnapshot(snapshot) {
-    const { current, daily, airQuality } = snapshot;
+    const { current, daily, airQuality, hourly } = snapshot;
     const rainProb = daily[0]?.precipitationProbabilityPercent ?? 0;
     const reasons = [];
     let cautionCount = 0;
@@ -401,20 +521,34 @@ const Home = (() => {
     const badgeLabel = level === "good" ? "GOOD" : level === "caution" ? "CAUTION" : "POOR";
     badge.innerHTML = `${badgeIcons[level]}<span>${badgeLabel}</span>`;
     document.getElementById("travel-reasons").innerHTML = reasons.slice(0, 4).map((r) => `<li>${escapeHtml(r)}</li>`).join("");
+
+    const windowEl = document.getElementById("travel-window");
+    const window_ = findBestOutdoorWindow(hourly, daily);
+    if (window_) {
+      document.getElementById("travel-window-value").textContent = `${window_.startLabel} – ${window_.endLabel}`;
+      windowEl.hidden = false;
+    } else {
+      windowEl.hidden = true;
+    }
   }
 
   function renderAnalytics(daily) {
     const labels = daily.map((d, i) => (i === 0 ? "Today" : new Date(`${d.date}T00:00:00`).toLocaleDateString([], { weekday: "short" })));
+    const trendValues = daily.map((d) => tempValue(d.tempMaxCelsius));
     GlassChart.line(document.getElementById("temp-trend-chart"), {
       labels,
-      values: daily.map((d) => tempValue(d.tempMaxCelsius)),
+      values: trendValues,
       formatValue: (v) => `${Math.round(v)}°`,
     });
+    fillChartTable("temp-trend-chart-table-body", labels, trendValues, (v) => `${Math.round(v)}°${Store.getUnit()}`);
+
+    const rainValues = daily.map((d) => d.precipitationProbabilityPercent);
     GlassChart.bars(document.getElementById("rain-chart"), {
       labels,
-      values: daily.map((d) => d.precipitationProbabilityPercent),
+      values: rainValues,
       max: 100,
     });
+    fillChartTable("rain-chart-table-body", labels, rainValues, (v) => `${Math.round(v)}%`);
 
     const highs = daily.map((d) => d.tempMaxCelsius);
     const lows = daily.map((d) => d.tempMinCelsius);
@@ -436,13 +570,23 @@ const Home = (() => {
 
   function renderDashboard(snapshot) {
     const { location, current, hourly, daily, airQuality, currency } = snapshot;
+    const isMyLocation = location.name === MY_LOCATION_LABEL;
 
     document.getElementById("hero-city").textContent = location.name;
-    document.getElementById("hero-country").textContent = [location.region, location.country].filter(Boolean).join(", ");
+    // For My Location there's no city/country to show (no reverse geocoding
+    // — see location.js) — say so plainly instead of leaving a blank line
+    // that reads as missing data.
+    document.getElementById("hero-country").textContent = isMyLocation
+      ? "Current conditions based on your device location"
+      : [location.region, location.country].filter(Boolean).join(", ");
     document.getElementById("hero-icon").innerHTML = weatherIconSvg(current.condition.icon);
     document.getElementById("hero-temp").textContent = tempLabel(current.temperatureCelsius);
     document.getElementById("hero-condition").textContent = current.condition.description;
-    document.getElementById("hero-feels").textContent = `Feels like ${tempLabel(current.feelsLikeCelsius)}`;
+    // Compact glanceable line right under the temperature — the same
+    // values also appear in the detailed metrics grid below; this isn't a
+    // second data source, just a more prominent restatement of it.
+    document.getElementById("hero-feels").textContent =
+      `Feels like ${tempLabel(current.feelsLikeCelsius)} · Humidity ${current.humidityPercent}% · Wind ${Math.round(current.windSpeedKmh)} km/h`;
     const hiloEl = document.getElementById("hero-hilo");
     const today = daily && daily[0];
     if (today) {
@@ -451,7 +595,12 @@ const Home = (() => {
     } else {
       hiloEl.hidden = true;
     }
-    renderFavoriteButton(location);
+    // Pinning "My Location" would write raw coordinates into Favorites —
+    // not allowed (see privacy.html) — so the control isn't offered at all.
+    const favBtn = document.getElementById("favorite-btn");
+    favBtn.hidden = isMyLocation;
+    if (!isMyLocation) renderFavoriteButton(location);
+    renderMyCitiesCard();
 
     clearInterval(timeInterval);
     updateLocalTime();
@@ -461,7 +610,7 @@ const Home = (() => {
     renderHourly(hourly);
     renderDaily(daily);
     renderAirQuality(airQuality);
-    renderCurrency(currency);
+    renderCurrency(currency, isMyLocation);
     renderTravelSnapshot(snapshot);
     renderAnalytics(daily);
   }
@@ -493,13 +642,52 @@ const Home = (() => {
         loadCity(loc.name, loc);
       });
     });
+    renderMyCitiesCard();
+  }
+
+  // "My Cities" as it appears on the dashboard itself, not just the hero —
+  // pinned cities were previously only reachable before a city was loaded.
+  // Deliberately name-only (no live temperature per pin): showing a live
+  // temp for every pinned city would mean fetching a fresh snapshot for
+  // each one on every dashboard render, which doesn't scale and isn't
+  // worth the extra API load for a "quick open" list.
+  function renderMyCitiesCard() {
+    const favs = Store.getFavorites();
+    const card = document.getElementById("my-cities-card");
+    const row = document.getElementById("my-cities-row");
+    card.hidden = favs.length === 0;
+    row.innerHTML = favs.map((c, i) => `
+      <span class="my-city-pill">
+        <button type="button" class="my-city-open" data-open-index="${i}">${escapeHtml(c.name)}</button>
+        <button type="button" class="my-city-unpin" data-unpin-index="${i}" aria-label="Unpin ${escapeHtml(c.name)}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </span>`).join("");
+    row.querySelectorAll("[data-open-index]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const loc = favs[Number(btn.dataset.openIndex)];
+        loadCity(loc.name, loc);
+      });
+    });
+    row.querySelectorAll("[data-unpin-index]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const loc = favs[Number(btn.dataset.unpinIndex)];
+        Store.toggleFavorite(loc);
+        if (currentSnapshot && currentSnapshot.location.name === loc.name && currentSnapshot.location.country === loc.country) {
+          renderFavoriteButton(currentSnapshot.location);
+        }
+        renderFavoriteChips();
+      });
+    });
   }
 
   function init() {
-    document.getElementById("home-error-retry").addEventListener("click", () => loadCity(currentLocationQuery));
+    document.getElementById("home-error-retry").addEventListener("click", () => {
+      if (currentLocationQuery) loadCity(currentLocationQuery);
+    });
 
     document.getElementById("favorite-btn").addEventListener("click", () => {
-      if (!currentSnapshot) return;
+      if (!currentSnapshot || currentSnapshot.location.name === MY_LOCATION_LABEL) return;
       const nowFav = Store.toggleFavorite(currentSnapshot.location);
       renderFavoriteButton(currentSnapshot.location);
       renderFavoriteChips();

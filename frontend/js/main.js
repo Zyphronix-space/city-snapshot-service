@@ -69,6 +69,11 @@ const Main = (() => {
     const toast = document.createElement("div");
     toast.className = "toast";
     toast.textContent = message;
+    // Error toasts get role="alert" so assistive tech announces them
+    // immediately, instead of relying on the container's aria-live="polite"
+    // (which is appropriate for routine status toasts, but too easy to miss
+    // for an error).
+    toast.setAttribute("role", isError ? "alert" : "status");
     if (isError) toast.style.color = "var(--danger)";
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3200);
@@ -113,8 +118,11 @@ const Main = (() => {
     Home.init();
     MapView.init();
     Compare.init();
+    LocationFeature.init();
     switchView("home");
-    Home.loadCity("Colombo");
+    // No city is auto-loaded: the hero (search + "Use my location" + any
+    // recent/favorite/popular chips) is the deliberate first-run state, not
+    // a placeholder that flashes before Colombo loads.
     const footerYear = document.getElementById("footer-year");
     if (footerYear) footerYear.textContent = new Date().getFullYear();
   }

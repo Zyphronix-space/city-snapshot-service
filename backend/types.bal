@@ -14,8 +14,15 @@ public type GeoResult record {
     string name;
     float latitude;
     float longitude;
-    string country;
-    string country_code;
+    // Open-Meteo's geocoding API doesn't guarantee every result carries a
+    // country/country_code (some entries — oceanic features, certain
+    // territories — omit them). Modeling these as required here caused a
+    // single missing field anywhere in a result set to fail the *whole*
+    // request's JSON binding, not just that one entry — only surfaced once
+    // `count` was raised enough to reach past the always-populous, always-
+    // clean top results (see geocodeSearch).
+    string? country = ();
+    string? country_code = ();
     string? timezone = ();
     string? admin1 = ();
     int? population = ();

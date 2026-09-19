@@ -152,11 +152,20 @@
   text-align: center;
   padding: clamp(1.5rem, 8vh, 4rem) 0 2rem;
 }
+.hero-kicker {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: var(--space-2);
+}
 .search-hero h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); font-weight: 800; letter-spacing: -0.02em; }
 .search-hero .lede { margin: 0.6rem 0 1.75rem; }
 .search-hero .search-box { width: min(560px, 100%); }
 .search-hero .search-suggestions { width: min(560px, 100%); text-align: left; }
-.search-hero .chip-group { justify-content: center; }
+.hero-location-btn { margin-top: var(--space-4); }
+.search-hero .chip-group { justify-content: center; margin-top: var(--space-5); }
 
 /* ---- Home: dashboard ---- */
 .dashboard {
@@ -176,6 +185,42 @@
   animation: fade-slide-in 0.5s var(--ease-out) both;
 }
 .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4); flex-wrap: wrap; }
+
+/* ---- My Cities (pinned favorites, visible from the dashboard itself) ---- */
+.my-cities-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-2) 0;
+}
+.my-cities-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+.my-cities-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.my-city-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  border-radius: var(--radius-pill);
+  padding: 0.25rem 0.25rem 0.25rem 0.85rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.my-city-open { border: none; background: transparent; color: var(--text); font-weight: 600; font-size: 0.85rem; cursor: pointer; padding: 0.1rem 0; }
+.my-city-unpin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.my-city-unpin:hover { background: var(--glass-bg-strong); color: var(--danger); }
 .hero-location-row { display: flex; align-items: center; gap: 0.4rem; }
 .hero-location-row h2 { font-size: clamp(1.2rem, 3.2vw, 1.5rem); font-weight: 700; letter-spacing: -0.01em; }
 .hero-location p { margin-top: 0.15rem; color: var(--muted); font-weight: 500; font-size: 0.9rem; }
@@ -284,6 +329,13 @@
 .travel-reasons { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
 .travel-reasons li { padding-left: 1.1rem; position: relative; color: var(--muted); }
 .travel-reasons li::before { content: "•"; position: absolute; left: 0; color: var(--text); }
+.travel-window {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--hairline);
+}
+.travel-window-label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; }
+.travel-window-value { display: block; font-size: 1.05rem; font-weight: 700; margin-top: 0.2rem; }
 
 .currency-display { display: flex; align-items: center; gap: 0.6rem; font-size: 1.1rem; }
 .currency-display svg { color: var(--primary); }
@@ -405,36 +457,69 @@
 .leaflet-control-attribution a { color: var(--text) !important; }
 
 /* ---- Compare view ---- */
-.compare-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--space-4);
+.compare-table-wrap {
   margin: var(--space-5) 0;
+  padding: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
-.compare-card { display: flex; flex-direction: column; gap: 0.5rem; position: relative; }
-.compare-card .compare-remove {
-  position: absolute;
-  top: 0.9rem;
-  right: 0.9rem;
+.compare-table {
+  width: 100%;
+  min-width: 480px;
+  border-collapse: collapse;
+}
+.compare-table th, .compare-table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  white-space: nowrap;
+}
+.compare-table thead th {
+  border-bottom: 1px solid var(--hairline);
+  vertical-align: top;
+  font-weight: 700;
+}
+.compare-table thead th:first-child { min-width: 6.5rem; }
+.compare-city-name { display: block; font-size: 1rem; }
+.compare-city-country { display: block; color: var(--muted); font-weight: 500; font-size: 0.78rem; margin-top: 0.1rem; }
+.compare-table .compare-remove {
+  margin-top: 0.4rem;
   border: none;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  font-size: 1rem;
+  padding: 0.2rem;
+  border-radius: var(--radius-sm);
 }
-.compare-card h3 { font-size: 1.1rem; font-weight: 700; }
-.compare-card .compare-country { color: var(--muted); font-size: 0.85rem; }
-.compare-card .compare-temp { font-size: 2.2rem; font-weight: 300; margin-top: 0.3rem; }
-.compare-card .compare-condition { font-weight: 600; }
-.compare-metric-list { list-style: none; margin: 0.5rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; }
-.compare-metric-list li { display: flex; justify-content: space-between; color: var(--muted); }
-.compare-metric-list li strong { color: var(--text); font-weight: 600; }
+.compare-table .compare-remove:hover { color: var(--danger); }
+.compare-table tbody th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.compare-table tbody tr:not(:last-child) th,
+.compare-table tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--hairline);
+}
+.compare-table tbody td { font-weight: 600; }
 
 /* ---- About view ---- */
 .about-card { margin-bottom: var(--space-4); }
 .about-card p, .about-card ul { color: var(--muted); line-height: 1.6; }
 .about-card strong { color: var(--text); }
 .tech-list { padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.data-source-list { margin: 0; }
+.data-source-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 0.6rem 0;
+}
+.data-source-row:not(:last-child) { border-bottom: 1px solid var(--hairline); }
+.data-source-row dt { color: var(--text); font-weight: 600; }
+.data-source-row dd { margin: 0; color: var(--muted); text-align: right; }
+.about-fineprint { margin-top: var(--space-4); font-size: 0.85rem; }
+.about-links-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.about-links-list a { font-weight: 600; }
 
 /* ============================================================
    Responsive

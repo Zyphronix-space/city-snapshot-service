@@ -45,6 +45,9 @@
         </nav>
 
         <div class="nav-actions">
+          <button type="button" class="icon-btn" id="location-btn" data-open-location aria-label="Use my location" title="Use my location">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          </button>
           <button type="button" class="pill-btn" id="unit-toggle" aria-label="Switch temperature unit">°C</button>
           <button type="button" class="icon-btn" id="theme-toggle" aria-label="Change theme">
             <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></svg>
@@ -70,8 +73,9 @@
 
         <!-- Hero search — shown until a city is loaded -->
         <div class="search-hero" id="search-hero">
-          <h1>Explore any city</h1>
-          <p class="lede">Search for a city to see live weather, forecasts, air quality and currency, no account needed.</p>
+          <p class="hero-kicker">CityScope</p>
+          <h1>See what's happening in any city.</h1>
+          <p class="lede">Live weather, air quality, local time and currency — all in one place, no account needed.</p>
 
           <form class="search-box glass" id="hero-search-form" role="search" autocomplete="off">
             <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -79,6 +83,11 @@
             <button type="submit" class="search-go" aria-label="Search">Search</button>
           </form>
           <ul class="search-suggestions glass" id="hero-suggestions" role="listbox" hidden></ul>
+
+          <button type="button" class="btn-secondary hero-location-btn" data-open-location>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            Use my location
+          </button>
 
           <div class="chip-group" id="popular-cities">
             <span class="chip-group-label">Popular:</span>
@@ -103,9 +112,27 @@
         </div>
 
         <!-- Loading / error states -->
-        <div class="state-block loading-state" id="home-loading" hidden role="status" aria-live="polite">
-          <div class="spinner" aria-hidden="true"></div>
-          <p>Fetching live data…</p>
+        <div class="skeleton-state" id="home-loading" hidden role="status" aria-live="polite">
+          <span class="sr-only">Fetching live data…</span>
+          <div class="skeleton-hero" aria-hidden="true">
+            <div class="skeleton skeleton-line skeleton-w-40"></div>
+            <div class="skeleton skeleton-block skeleton-temp"></div>
+            <div class="skeleton skeleton-line skeleton-w-30"></div>
+          </div>
+          <div class="skeleton-row" aria-hidden="true">
+            <div class="skeleton skeleton-chip"></div>
+            <div class="skeleton skeleton-chip"></div>
+            <div class="skeleton skeleton-chip"></div>
+            <div class="skeleton skeleton-chip"></div>
+          </div>
+          <div class="skeleton-row skeleton-hourly" aria-hidden="true">
+            <div class="skeleton skeleton-pill"></div>
+            <div class="skeleton skeleton-pill"></div>
+            <div class="skeleton skeleton-pill"></div>
+            <div class="skeleton skeleton-pill"></div>
+            <div class="skeleton skeleton-pill"></div>
+            <div class="skeleton skeleton-pill"></div>
+          </div>
         </div>
 
         <div class="state-block error-state" id="home-error" hidden role="alert">
@@ -154,12 +181,24 @@
             </div>
           </section>
 
+          <section class="my-cities-card" id="my-cities-card" aria-label="My Cities" hidden>
+            <span class="my-cities-label">My Cities</span>
+            <div class="my-cities-row" id="my-cities-row"></div>
+          </section>
+
           <section class="metrics-grid" id="metrics-grid" aria-label="Current conditions"></section>
 
           <section class="glass-card" id="hourly-section">
             <h3 class="card-title">Hourly Forecast</h3>
             <div class="hourly-scroll" id="hourly-scroll"></div>
             <canvas id="hourly-chart" class="glass-chart" height="120" role="img" aria-label="Hourly temperature chart"></canvas>
+            <div class="sr-only">
+              <table id="hourly-chart-table">
+                <caption>Hourly temperature, next 24 hours</caption>
+                <thead><tr><th scope="col">Time</th><th scope="col">Temperature</th></tr></thead>
+                <tbody id="hourly-chart-table-body"></tbody>
+              </table>
+            </div>
           </section>
 
           <section class="glass-card" id="daily-section">
@@ -183,10 +222,13 @@
             </section>
 
             <section class="glass-card" id="travel-card">
-              <h3 class="card-title">Travel Snapshot</h3>
-              <p class="travel-subtitle">How today's weather feels for being outdoors</p>
+              <h3 class="card-title">Is it a good time to be outside?</h3>
               <p class="travel-badge" id="travel-badge">—</p>
               <ul class="travel-reasons" id="travel-reasons"></ul>
+              <div class="travel-window" id="travel-window" hidden>
+                <span class="travel-window-label">Best outdoor window</span>
+                <span class="travel-window-value" id="travel-window-value"></span>
+              </div>
             </section>
           </div>
 
@@ -194,7 +236,7 @@
             <h3 class="card-title">Currency</h3>
             <div class="currency-display">
               <span id="currency-base-line">—</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+              <svg id="currency-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
               <span id="currency-target-line">—</span>
             </div>
             <p class="currency-updated" id="currency-updated"></p>
@@ -223,6 +265,20 @@
               <canvas id="temp-trend-chart" class="glass-chart" height="140" role="img" aria-label="Temperature trend chart"></canvas>
               <canvas id="rain-chart" class="glass-chart" height="140" role="img" aria-label="Rain probability chart"></canvas>
             </div>
+            <div class="sr-only">
+              <table id="temp-trend-chart-table">
+                <caption>7-day temperature trend, daily high</caption>
+                <thead><tr><th scope="col">Day</th><th scope="col">High temperature</th></tr></thead>
+                <tbody id="temp-trend-chart-table-body"></tbody>
+              </table>
+            </div>
+            <div class="sr-only">
+              <table id="rain-chart-table">
+                <caption>7-day rain probability</caption>
+                <thead><tr><th scope="col">Day</th><th scope="col">Chance of rain</th></tr></thead>
+                <tbody id="rain-chart-table-body"></tbody>
+              </table>
+            </div>
             <div class="range-row" id="range-row"></div>
           </section>
 
@@ -232,7 +288,7 @@
       <!-- ============================== MAP ============================== -->
       <section class="view" id="view-map" data-view="map" hidden>
         <div class="view-header">
-          <h1>Map</h1>
+          <h1>Explore the city</h1>
           <p class="lede">Find a city on the map, or search to jump straight to it.</p>
         </div>
         <form class="search-box glass" id="map-search-form" role="search" autocomplete="off">
@@ -263,10 +319,17 @@
           <p class="lede">No cities added yet. Search above to get started.</p>
         </div>
 
-        <div class="compare-grid" id="compare-grid" hidden></div>
+        <div class="compare-table-wrap glass-card" id="compare-grid" hidden></div>
         <section class="glass-card" id="compare-chart-card" hidden>
           <h3 class="card-title">Temperature comparison</h3>
           <canvas id="compare-chart" class="glass-chart" height="160" role="img" aria-label="City temperature comparison chart"></canvas>
+          <div class="sr-only">
+            <table id="compare-chart-table">
+              <caption>City temperature comparison</caption>
+              <thead><tr><th scope="col">City</th><th scope="col">Temperature</th></tr></thead>
+              <tbody id="compare-chart-table-body"></tbody>
+            </table>
+          </div>
         </section>
       </section>
 
@@ -283,17 +346,24 @@
         </section>
 
         <section class="glass-card about-card">
-          <h3 class="card-title">Good to know</h3>
-          <ul class="tech-list">
-            <li>Everything you see is live data. Nothing is made up or estimated.</li>
-            <li>Your recent searches and pinned cities are saved only on this device, in your browser's local storage. They are never sent to any server.</li>
-            <li>Weather and air quality come from Open-Meteo; currency rates from exchangerate-api.com. See the <a href="privacy.html">Privacy Policy</a> for details.</li>
-          </ul>
+          <h3 class="card-title">Data &amp; privacy</h3>
+          <dl class="data-source-list">
+            <div class="data-source-row"><dt>Weather &amp; forecasts</dt><dd>Open-Meteo</dd></div>
+            <div class="data-source-row"><dt>Air quality</dt><dd>Open-Meteo</dd></div>
+            <div class="data-source-row"><dt>Currency</dt><dd>exchangerate-api.com</dd></div>
+            <div class="data-source-row"><dt>Your searches &amp; pinned cities</dt><dd>Stored locally on your device</dd></div>
+            <div class="data-source-row"><dt>"Use my location" coordinates</dt><dd>Sent for that request only &mdash; never stored</dd></div>
+          </dl>
+          <p class="about-fineprint">Everything you see is live data &mdash; nothing is made up or estimated. See the <a href="privacy.html">Privacy Policy</a> for the full detail.</p>
         </section>
 
         <section class="glass-card about-card">
           <h3 class="card-title">Links</h3>
-          <p><a id="about-repo-link" href="https://github.com/Zyphronix-space/city-snapshot-service" target="_blank" rel="noopener">Source on GitHub</a></p>
+          <ul class="about-links-list">
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms of Use</a></li>
+            <li><a id="about-repo-link" href="https://github.com/Zyphronix-space/city-snapshot-service" target="_blank" rel="noopener">Source on GitHub</a></li>
+          </ul>
         </section>
       </section>
 
@@ -316,12 +386,43 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v6c0 4.5 3 7.7 7.5 9 4.5-1.3 7.5-4.5 7.5-9V6L12 3Z"/></svg>
           Privacy
         </a>
+        <a class="footer-link" href="terms.html">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+          Terms
+        </a>
       </div>
       <p class="footer-copy">© <span id="footer-year"></span> CityScope · Weather &amp; air quality by Open-Meteo, currency by exchangerate-api.com</p>
     </footer>
   </div>
 
   <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- Location consent modal: the explanation step shown BEFORE the
+       browser's native geolocation permission prompt. See location.js. -->
+  <div class="modal-overlay" id="location-modal-overlay" hidden>
+    <div
+      class="modal glass-card"
+      id="location-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="location-modal-title"
+      aria-describedby="location-modal-desc"
+      tabindex="-1"
+    >
+      <button type="button" class="icon-btn modal-close" id="location-modal-close" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="modal-icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      </div>
+      <h2 class="modal-title" id="location-modal-title">Use my location</h2>
+      <p class="modal-desc" id="location-modal-desc">CityScope can use your device location to show weather and air-quality information for where you are. Your location is used for this request and isn't saved in your CityScope history.</p>
+      <div class="modal-actions" id="location-modal-actions">
+        <button type="button" class="btn-secondary" id="location-not-now-btn">Not now</button>
+        <button type="button" class="btn-primary" id="location-allow-btn">Allow location</button>
+      </div>
+    </div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="js/weather-icons.js"></script>
@@ -331,6 +432,7 @@
   <script src="js/home.js"></script>
   <script src="js/map.js"></script>
   <script src="js/compare.js"></script>
+  <script src="js/location.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

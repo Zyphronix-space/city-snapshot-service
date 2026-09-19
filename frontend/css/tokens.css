@@ -23,6 +23,12 @@
 
   --primary: #3d7bf0;
   --primary-contrast: #ffffff;
+  /* Scoped to .btn-primary/.search-go only (see components.css). White text
+     on --primary measures ~3.97:1, below the 4.5:1 AA minimum for their
+     14.7px/weight-600 label; this darker shade measures ~5.0:1. Kept
+     separate from --primary so links, focus rings, chips, and icon badges
+     (which already pass contrast) are unaffected. */
+  --btn-primary-bg: #356bd1;
   --success: #1f9d55;
   --warning: #b8860b;
   --danger: #d84343;
@@ -63,6 +69,9 @@
 
     --primary: #6d9bff;
     --primary-contrast: #06090f;
+    /* Dark-theme --primary-contrast on --primary already measures ~7.4:1,
+       well past AA, so the button background just follows --primary here. */
+    --btn-primary-bg: var(--primary);
     --success: #3fd074;
     --warning: #e0b23a;
     --danger: #ff6b6b;
@@ -87,6 +96,7 @@
 
   --primary: #6d9bff;
   --primary-contrast: #06090f;
+  --btn-primary-bg: var(--primary);
   --success: #3fd074;
   --warning: #e0b23a;
   --danger: #ff6b6b;

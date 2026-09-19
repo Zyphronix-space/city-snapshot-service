@@ -1,6 +1,19 @@
 // CityScope — GlassChart: minimal canvas line/bar charts, no library.
 // Every value plotted comes straight from the API response passed in by
 // the caller; nothing here invents or smooths data.
+
+// Screen-reader-only data table for a chart. Called from the same site as
+// the matching GlassChart.line/bars call, with the same labels/values, so
+// the table can never drift out of sync with what's drawn on the canvas.
+function fillChartTable(tbodyId, labels, values, formatValue = (v) => `${v}`) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  const esc = typeof escapeHtml === "function" ? escapeHtml : (s) => String(s ?? "");
+  tbody.innerHTML = labels
+    .map((label, i) => `<tr><td>${esc(label)}</td><td>${esc(formatValue(values[i]))}</td></tr>`)
+    .join("");
+}
+
 const GlassChart = (() => {
   const registry = new Map();
 

@@ -60,10 +60,24 @@ Compare view — current conditions for 2–4 cities side by side:
 - **Backend:** Ballerina (Swan Lake) — HTTP service, concurrent upstream
   calls, in-memory TTL caching, fixed-window rate limiting, unit tests
 - **Frontend:** vanilla HTML/CSS/JS, no framework, no build step
-- **Map:** Leaflet + OpenStreetMap tiles
+- **Map:** Leaflet + Esri (ArcGIS Online) World Dark Gray Base tiles
 - **Data:** [Open-Meteo](https://open-meteo.com/) (geocoding, forecast, air
   quality) and [open.er-api.com](https://www.exchangerate-api.com/) (currency)
   — both free and keyless
+
+## Third-party services & licenses
+
+| Asset | License / tier | Attribution |
+|---|---|---|
+| [Leaflet](https://leafletjs.com/) 1.9.4 (map library, loaded from the unpkg CDN) | BSD-2-Clause | Not required on-page |
+| Esri World Dark Gray Base map tiles | Free, keyless basemap tier | Required — rendered automatically by Leaflet's attribution control on the Map view ("Esri — Esri, HERE, Garmin, © OpenStreetMap contributors, and the GIS user community") |
+| [Open-Meteo](https://open-meteo.com/) (weather, air quality, geocoding) | Free tier | Called server-side only |
+| [open.er-api.com](https://www.exchangerate-api.com/) (currency) | Free tier | Called server-side only |
+
+Icons are hand-authored inline SVG (no icon font/library). No webfonts are
+loaded — the UI uses the system font stack only. No raster images are used in
+the frontend. Full detail on what each third party can see, and what
+CityScope's own hosting logs, is in the [Privacy Policy](frontend/privacy.html).
 
 ## Architecture
 

@@ -21,6 +21,15 @@ const MapView = (() => {
         maxZoom: 16,
       }
     ).addTo(map);
+    // Esri's companion "Reference" layer for this same basemap — place
+    // names, borders, and other labels, more of them revealed at higher
+    // zoom (the standard Esri Canvas base/reference pairing). Same free,
+    // keyless Esri service as the base layer above, so it doesn't add a
+    // new attribution line or a new third party.
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 16, pane: "overlayPane" }
+    ).addTo(map);
     return map;
   }
 

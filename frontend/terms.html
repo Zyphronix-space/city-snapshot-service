@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="CityScope's terms of use: what the service is, what it does not guarantee, and reasonable use." />
+  <title>Terms of Use - CityScope</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+</head>
+<body data-theme="system">
+
+  <div class="app-shell">
+
+    <header class="navbar">
+      <div class="nav-inner">
+        <a class="brand" href="index.html" style="text-decoration:none; color:inherit;">
+          <span class="brand-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a5 5 0 1 1 1.5-9.8A6 6 0 0 1 22 12a4.5 4.5 0 0 1-4.5 7Z"/></svg>
+          </span>
+          CityScope
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <div class="legal-page">
+        <a class="back-link" href="index.html">&larr; Back to CityScope</a>
+
+        <h1>Terms of Use</h1>
+        <p class="lede">Last updated: 19 September 2026</p>
+
+        <section>
+          <h2>Who operates CityScope</h2>
+          <p>CityScope is operated by Stephan Wasalathanthrige, an individual student building a portfolio project. It is not a registered company or business entity.</p>
+        </section>
+
+        <section>
+          <h2>What CityScope is</h2>
+          <p>CityScope is a free, no-account tool that lets you search for a city and view its current weather, hourly and 7-day forecast, air quality, local time, and currency exchange rate.</p>
+          <p>The information is sourced from third-party services, including Open-Meteo for weather, air quality, and geocoding, and open.er-api.com / exchangerate-api.com for currency data.</p>
+          <p>For information about how CityScope handles data and local browser storage, see the <a href="privacy.html">Privacy Policy</a>.</p>
+        </section>
+
+        <section>
+          <h2>No warranty, "as is"</h2>
+          <p>CityScope is provided "as is", without guarantees regarding accuracy, availability, or uptime.</p>
+          <p>In particular:</p>
+          <ul>
+            <li>Weather, air quality, and currency data come from free third-party APIs that CityScope does not control. The information may be delayed, estimated, incomplete, or occasionally incorrect.</li>
+            <li>CityScope caches some results to reduce unnecessary requests to those services. Cache periods can vary by data type, including up to 24 hours for city lookups, 5 minutes for weather, 10 minutes for air quality, and 30 minutes for currency rates. Information shown by CityScope may therefore not always reflect the latest upstream update.</li>
+            <li>If an upstream provider is unavailable, the affected part of the dashboard may show as unavailable rather than causing the entire page to fail.</li>
+            <li>The "Travel Snapshot" shown on the dashboard is a simple rule-based summary of information already displayed on the page, including temperature, rain chance, UV, and air quality. It is not AI-generated, is not professional travel or safety advice, and should not be relied upon for safety-critical decisions.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Reasonable use</h2>
+          <p>CityScope's backend uses a shared rate limit across visitors so that the free upstream services it depends on remain available.</p>
+          <p>As a practical courtesy, please do not automate high-volume requests or scrape the API for bulk data collection, since doing so could exhaust the shared quota for other visitors.</p>
+          <p>The exact limits are visible in the <a href="https://github.com/Zyphronix-space/city-snapshot-service" target="_blank" rel="noopener">CityScope source code</a>.</p>
+        </section>
+
+        <section>
+          <h2>No account or payment</h2>
+          <p>CityScope has no user accounts and no payment system.</p>
+          <p>It does not maintain a permanent database of your activity. Short-lived in-memory caches and hosting-platform request logs may exist as described in the Privacy Policy.</p>
+        </section>
+
+        <section>
+          <h2>Changes to this service or these terms</h2>
+          <p>As a portfolio project, CityScope's features, API, availability, or hosting may change or the service may be discontinued at any time.</p>
+          <p>If these terms change, the "Last updated" date above will be updated accordingly.</p>
+        </section>
+
+        <section>
+          <h2>Contact</h2>
+          <p>Questions about these terms or the project can be sent to <a href="mailto:stephanwasalathanthrige@gmail.com">stephanwasalathanthrige@gmail.com</a>.</p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <p>CityScope: weather &amp; air quality by Open-Meteo, currency by exchangerate-api.com.</p>
+      <p class="footer-links">
+        <a href="https://github.com/Zyphronix-space/city-snapshot-service" target="_blank" rel="noopener">Source on GitHub</a>
+        <span aria-hidden="true">|</span>
+        <a href="privacy.html">Privacy</a>
+        <span aria-hidden="true">|</span>
+        <a href="terms.html">Terms</a>
+      </p>
+    </footer>
+  </div>
+
+</body>
+</html>
