@@ -7,6 +7,10 @@ const STORAGE_KEYS = {
   theme: "cityscope.theme",
   unit: "cityscope.unit",
   unitManual: "cityscope.unit.manual",
+  // Coordinates for the hero's "Popular" city chips, resolved once via the
+  // real city-search API and cached forever (they're fixed cities, not
+  // live data) — see MapView.popularCityMarkers() in map.js.
+  popularCoords: "cityscope.popularCoords",
 };
 
 const MAX_RECENT = 8;

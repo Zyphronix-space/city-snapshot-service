@@ -79,6 +79,7 @@ const Main = (() => {
     setTimeout(() => toast.remove(), 3200);
   }
 
+  let activeView = null;
   function switchView(view) {
     document.querySelectorAll(".view").forEach((el) => {
       el.hidden = el.dataset.view !== view;
@@ -90,6 +91,10 @@ const Main = (() => {
     document.getElementById("nav-burger").setAttribute("aria-expanded", "false");
     window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
 
+    // The globe's render loop only costs CPU/GPU while its view is actually
+    // visible — pause it the instant Map is navigated away from.
+    if (activeView === "map" && view !== "map") MapView.onHidden();
+    activeView = view;
     if (view === "map") MapView.onShown();
     // Charts on the view being shown may have skipped drawing while hidden
     // (a resize while off-screen would otherwise bake in a wrong-size bitmap).

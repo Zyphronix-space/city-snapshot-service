@@ -740,5 +740,10 @@ const Home = (() => {
     renderRecentChips();
   }
 
-  return { init, loadCity, refreshUnits: () => currentSnapshot && renderDashboard(currentSnapshot) };
+  return {
+    init,
+    loadCity,
+    refreshUnits: () => currentSnapshot && renderDashboard(currentSnapshot),
+    getCurrentLocation: () => currentSnapshot?.location || null,
+  };
 })();

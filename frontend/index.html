@@ -46,7 +46,15 @@
 
         <div class="nav-actions">
           <button type="button" class="icon-btn" id="location-btn" data-open-location aria-label="Use my location" title="Use my location">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9.2" stroke="var(--muted)" stroke-width="1.2" opacity="0.5"/>
+              <path d="M12 3.4v1.9M12 18.7v1.9M3.4 12h1.9M18.7 12h1.9" stroke="var(--muted)" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+              <path d="M12 5.4 15.2 12 12 12Z" fill="var(--primary)"/>
+              <path d="M12 5.4 8.8 12 12 12Z" fill="var(--primary)" opacity="0.6"/>
+              <path d="M12 18.6 8.8 12 12 12Z" fill="var(--surface)" stroke="var(--muted)" stroke-width="0.6"/>
+              <path d="M12 18.6 15.2 12 12 12Z" fill="var(--surface)" stroke="var(--muted)" stroke-width="0.6" opacity="0.9"/>
+              <circle cx="12" cy="12" r="1.8" fill="var(--surface)" stroke="var(--primary)" stroke-width="1.1"/>
+            </svg>
           </button>
           <button type="button" class="pill-btn" id="unit-toggle" aria-label="Switch temperature unit">°C</button>
           <button type="button" class="icon-btn" id="theme-toggle" aria-label="Change theme">
@@ -85,7 +93,15 @@
           <ul class="search-suggestions glass" id="hero-suggestions" role="listbox" hidden></ul>
 
           <button type="button" class="btn-secondary hero-location-btn" data-open-location>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9.2" stroke="var(--muted)" stroke-width="1.2" opacity="0.5"/>
+              <path d="M12 3.4v1.9M12 18.7v1.9M3.4 12h1.9M18.7 12h1.9" stroke="var(--muted)" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+              <path d="M12 5.4 15.2 12 12 12Z" fill="var(--primary)"/>
+              <path d="M12 5.4 8.8 12 12 12Z" fill="var(--primary)" opacity="0.6"/>
+              <path d="M12 18.6 8.8 12 12 12Z" fill="var(--surface)" stroke="var(--muted)" stroke-width="0.6"/>
+              <path d="M12 18.6 15.2 12 12 12Z" fill="var(--surface)" stroke="var(--muted)" stroke-width="0.6" opacity="0.9"/>
+              <circle cx="12" cy="12" r="1.8" fill="var(--surface)" stroke="var(--primary)" stroke-width="1.1"/>
+            </svg>
             Use my location
           </button>
 
@@ -289,7 +305,7 @@
       <section class="view" id="view-map" data-view="map" hidden>
         <div class="view-header">
           <h1>Explore the city</h1>
-          <p class="lede">Find a city on the map, or search to jump straight to it.</p>
+          <p class="lede">Spin the globe, or search to jump straight to a city.</p>
         </div>
         <form class="search-box glass" id="map-search-form" role="search" autocomplete="off">
           <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -297,7 +313,25 @@
           <button type="submit" class="search-go">Search</button>
         </form>
         <ul class="search-suggestions glass" id="map-suggestions" role="listbox" hidden></ul>
-        <div class="map-frame glass" id="map-frame">
+
+        <!-- Primary experience: a 3D globe (js/globe.js). Hidden and left
+             uninitialised whenever WebGL isn't available. -->
+        <div class="globe-frame" id="globe-frame">
+          <div class="globe-stage" id="globe-stage">
+            <div class="globe-canvas-wrap" id="globe-canvas-wrap">
+              <canvas id="globe-canvas" aria-hidden="true"></canvas>
+              <div class="globe-markers" id="globe-markers"></div>
+            </div>
+            <div class="globe-zoom">
+              <button type="button" class="globe-zoom-btn" id="globe-zoom-in" aria-label="Zoom in">+</button>
+              <button type="button" class="globe-zoom-btn" id="globe-zoom-out" aria-label="Zoom out">&minus;</button>
+            </div>
+            <p class="globe-hint" id="globe-hint">Drag to rotate · zoom in for cities</p>
+          </div>
+        </div>
+
+        <!-- Fallback for browsers/devices without usable WebGL. -->
+        <div class="map-frame glass" id="map-frame" hidden>
           <div id="map-container"></div>
         </div>
       </section>
@@ -413,7 +447,15 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
       <div class="modal-icon" aria-hidden="true">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9.2" stroke="var(--muted)" stroke-width="1.2" opacity="0.5"/>
+          <path d="M12 3.4v1.9M12 18.7v1.9M3.4 12h1.9M18.7 12h1.9" stroke="var(--muted)" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+          <path d="M12 5.4 15.2 12 12 12Z" fill="var(--primary)"/>
+          <path d="M12 5.4 8.8 12 12 12Z" fill="var(--primary)" opacity="0.6"/>
+          <path d="M12 18.6 8.8 12 12 12Z" fill="var(--surface)" stroke="var(--muted)" stroke-width="0.6"/>
+          <path d="M12 18.6 15.2 12 12 12Z" fill="var(--surface)" stroke="var(--muted)" stroke-width="0.6" opacity="0.9"/>
+          <circle cx="12" cy="12" r="1.8" fill="var(--surface)" stroke="var(--primary)" stroke-width="1.1"/>
+        </svg>
       </div>
       <h2 class="modal-title" id="location-modal-title">Use my location</h2>
       <p class="modal-desc" id="location-modal-desc">CityScope can use your device location to show weather and air-quality information for where you are. Your location is used for this request and isn't saved in your CityScope history.</p>
@@ -428,8 +470,10 @@
   <script src="js/weather-icons.js"></script>
   <script src="js/api.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/data/world-capitals.js"></script>
   <script src="js/charts.js"></script>
   <script src="js/home.js"></script>
+  <script type="module" src="js/globe.js"></script>
   <script src="js/map.js"></script>
   <script src="js/compare.js"></script>
   <script src="js/location.js"></script>
