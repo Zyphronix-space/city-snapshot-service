@@ -18,7 +18,7 @@ Engineering Intern application; rebuilt into a full product: the Ballerina
 backend now runs a versioned, cached, rate-limited API, and the frontend is a
 complete multi-view weather app instead of a single search box.
 
-**Live demo:** https://cityscope-stephan.vercel.app *(free-tier backend — the first request after a quiet spell can take ~30–60s while it wakes up)*
+**Live demo:** https://cityscope-stephan.vercel.app *(the first request after a quiet spell takes a few extra seconds while the backend wakes up)*
 
 ## Screenshots
 
@@ -238,23 +238,21 @@ layout from ~375px to desktop widths.
 
 ## Deployment
 
-The backend runs on Render's free tier as a Docker container
-(`backend/Dockerfile` builds the jar with the Ballerina toolchain, then runs it
-on a Java 21 JRE), and the frontend is a static site on Vercel. See the live
-demo link above.
+Both halves run on Vercel. The backend is a Vercel container function:
+`backend/Dockerfile.vercel` builds the jar with the Ballerina toolchain, then
+runs it on a Java 21 JRE (`PORT=8080` is set on the Vercel project so traffic
+reaches the hardcoded Ballerina listener). The frontend is a static site.
 
 ```
-# Backend: Render reads render.yaml (Blueprint) and redeploys on every push
-# to master. To run the same container locally:
-docker build -t city-snapshot backend && docker run -p 8080:8080 city-snapshot
+# Backend (container build happens on Vercel, no local Docker needed)
+cd backend && vercel deploy --prod
 
 # Frontend: static files, no build step
 cd frontend && vercel deploy --prod
 ```
 
-`PORT=8080` is set in `render.yaml` so Render routes traffic to the port the
-Ballerina listener is hardcoded to. Free-tier instances sleep after 15 minutes
-idle, so the first request afterwards is slow.
+Containers scale to zero after a few idle minutes, so the first request
+afterwards takes a few extra seconds.
 
 ## Technical decisions
 

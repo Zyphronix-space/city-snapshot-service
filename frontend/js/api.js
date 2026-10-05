@@ -3,7 +3,7 @@
 // every value rendered by the app comes from a real response here.
 const API_BASE = ["localhost", "127.0.0.1"].includes(location.hostname)
   ? "http://localhost:8080/api/v1"
-  : "https://city-snapshot-api-stephan.onrender.com/api/v1";
+  : "https://cityscope-api-stephan.vercel.app/api/v1";
 
 class ApiError extends Error {
   constructor(message, status, code) {
