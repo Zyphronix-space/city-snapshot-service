@@ -1,0 +1,16 @@
+# Render Blueprint for the Ballerina backend (free tier). The frontend is a
+# static site hosted on Vercel. No secrets are needed: every upstream API
+# the service calls is keyless.
+services:
+  - type: web
+    name: city-snapshot-api-stephan
+    runtime: docker
+    plan: free
+    region: singapore
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/health
+    envVars:
+      # The Ballerina listener is hardcoded to 8080; tell Render to route there.
+      - key: PORT
+        value: "8080"

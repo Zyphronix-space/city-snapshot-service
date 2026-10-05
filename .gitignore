@@ -3,3 +3,4 @@ backend/Config.toml
 *.pid
 *_out.log
 *_err.log
+.vercel

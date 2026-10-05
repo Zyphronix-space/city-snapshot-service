@@ -18,7 +18,7 @@ Engineering Intern application; rebuilt into a full product: the Ballerina
 backend now runs a versioned, cached, rate-limited API, and the frontend is a
 complete multi-view weather app instead of a single search box.
 
-**Live demo:** https://delightful-mud-0758db600.7.azurestaticapps.net
+**Live demo:** https://cityscope-stephan.vercel.app *(free-tier backend — the first request after a quiet spell can take ~30–60s while it wakes up)*
 
 ## Screenshots
 
@@ -238,23 +238,23 @@ layout from ~375px to desktop widths.
 
 ## Deployment
 
-The backend runs on Azure App Service (Java 21, Linux) and the frontend on
-Azure Static Web Apps (Free tier) — see the live demo link above.
+The backend runs on Render's free tier as a Docker container
+(`backend/Dockerfile` builds the jar with the Ballerina toolchain, then runs it
+on a Java 21 JRE), and the frontend is a static site on Vercel. See the live
+demo link above.
 
 ```
-# Backend: build a fresh jar, then deploy it directly
-cd backend && bal build
-az webapp deploy --resource-group <rg> --name <app-name> \
-  --src-path target/bin/city_snapshot_service.jar --type jar
+# Backend: Render reads render.yaml (Blueprint) and redeploys on every push
+# to master. To run the same container locally:
+docker build -t city-snapshot backend && docker run -p 8080:8080 city-snapshot
 
-# Frontend
-npx @azure/static-web-apps-cli deploy ./frontend \
-  --deployment-token <token> --env production
+# Frontend: static files, no build step
+cd frontend && vercel deploy --prod
 ```
 
-The App Service is configured with `WEBSITES_PORT=8080` (matching the
-Ballerina listener) and no custom startup command — Azure's Java SE runtime
-auto-detects and runs the single deployed jar.
+`PORT=8080` is set in `render.yaml` so Render routes traffic to the port the
+Ballerina listener is hardcoded to. Free-tier instances sleep after 15 minutes
+idle, so the first request afterwards is slow.
 
 ## Technical decisions
 
