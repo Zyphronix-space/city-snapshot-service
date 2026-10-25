@@ -1,0 +1,39 @@
+{
+  "enabledPlugins": {
+    "vercel@claude-plugins-official": true,
+    "figma@claude-plugins-official": true,
+    "supabase@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "stripe@claude-plugins-official": true,
+    "firebase@claude-plugins-official": true,
+    "sentry@claude-plugins-official": true,
+    "linear@claude-plugins-official": true,
+    "notion@claude-plugins-official": true,
+    "slack@claude-plugins-official": true,
+    "laravel-boost@claude-plugins-official": true,
+    "aws-core@claude-plugins-official": true,
+    "neon@claude-plugins-official": true,
+    "google-cloud-storage@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "jdtls-lsp@claude-plugins-official": true,
+    "postiz@claude-plugins-official": true,
+    "linkedin-agent@linkedin-agent-skill": true
+  },
+  "extraKnownMarketplaces": {
+    "linkedin-agent-skill": {
+      "source": {
+        "source": "github",
+        "repo": "Jakeschincariol/linkedin-agent-skill"
+      }
+    }
+  }
+}
